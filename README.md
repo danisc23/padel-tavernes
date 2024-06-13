@@ -74,7 +74,7 @@ or
 poetry run python run.py
 ```
 
-The docs will be available at `http://localhost:8080/docs/`.
+The docs will be available at `http://localhost:8000/docs/`.
 
 ### Testing
 
@@ -112,7 +112,7 @@ To run the application in a Docker container, follow these steps:
    docker-compose up -d
    ```
 
-The Flask app should now be accessible at `http://localhost:8080/docs/`.
+The Flask app should now be accessible at `http://localhost:8000/docs/`.
 
 ## Contributing
 
