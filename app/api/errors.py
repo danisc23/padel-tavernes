@@ -14,7 +14,7 @@ def handle_http_exception(e: HTTPException) -> tuple[dict, int]:
 
 
 def handle_internal_error(e: Exception) -> tuple[dict, int]:
-    return {"error": "internal_server_error", "message": str(e)}, 418
+    return {"error": "internal_server_error", "message": str(e)}, 500
 
 
 def init_error_handlers(api: Api) -> None:
