@@ -6,7 +6,7 @@ from flask import Response
 @patch("app.api.greedy_players.scrap_greedy_players")
 def test_get_returns_response(mock_scrap_greedy_players, client) -> None:
     mock_scrap_greedy_players.return_value = []
-    response = client.get("/api/padelvuestro.es/greedy-players/?sport=padel")
+    response = client.get("/api/greedy-players/?sport=padel")
     assert isinstance(response, Response)
 
 
@@ -17,9 +17,7 @@ def test_get_returns_json_response_with_greedy_players(mock_scrap_greedy_players
         {"name": "Player2", "count": 1, "different_dates": 3, "dates": ["2024-06-11", "2024-06-12", "2024-06-13"]},
     ]
 
-    response = client.get("/api/padelvuestro.es/greedy-players/?sport=padel")
-    print(response.data)
-    print("HIJO DE PUTA")
+    response = client.get("/api/greedy-players/?sport=padel")
     json_data = response.get_json()
 
     assert isinstance(json_data, list)

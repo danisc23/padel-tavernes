@@ -1,4 +1,4 @@
-from flask import Response, jsonify
+from flask import Response, g, jsonify
 from flask_restx import Namespace, Resource, reqparse
 
 from app.models import MatchFilter
@@ -23,7 +23,7 @@ availability_parser.add_argument(
 @ns.route("/")
 class CourtAvailability(Resource):
     @ns.expect(availability_parser)
-    def get(self, site: str) -> Response:
+    def get(self) -> Response:
         """See court availability"""
         args = availability_parser.parse_args()
         filter = MatchFilter(
@@ -31,5 +31,5 @@ class CourtAvailability(Resource):
             is_available=args.get("is_available"),
             days=args.get("days", "0123456"),
         )
-        data = scrap_court_data(filter, site)
+        data = scrap_court_data(filter, g.site)
         return jsonify(data)

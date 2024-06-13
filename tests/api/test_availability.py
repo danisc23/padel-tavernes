@@ -6,7 +6,7 @@ from flask import Response
 @patch("app.api.availability.scrap_court_data")
 def test_get_returns_response(mock_scrap_court_data, client) -> None:
     mock_scrap_court_data.return_value = []
-    response = client.get("/api/padelsuyo.es/availability/?sport=padel")
+    response = client.get("/api/availability/?sport=padel")
     assert isinstance(response, Response)
 
 
@@ -33,7 +33,7 @@ def test_get_returns_json_response_with_court_data(mock_scrap_court_data, client
         },
     ]
 
-    response = client.get("/api/padelsuyo.es/availability/?sport=padel")
+    response = client.get("/api/availability/?sport=padel")
     json_data = response.get_json()
 
     assert isinstance(json_data, list)

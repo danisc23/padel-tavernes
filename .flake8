@@ -8,3 +8,5 @@ extend-ignore =
 
 per-file-ignores =
     __init__.py:F401
+
+enable-extensions = P1
