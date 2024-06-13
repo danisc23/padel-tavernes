@@ -1,4 +1,4 @@
-from flask import Response, jsonify
+from flask import Response, g, jsonify
 from flask_restx import Namespace, Resource, reqparse
 
 from app.models import GreedyPlayersFilter
@@ -17,9 +17,9 @@ greedy_players_parser.add_argument(
 @ns.route("/")
 class GreedyPlayers(Resource):
     @ns.expect(greedy_players_parser)
-    def get(self, site: str) -> Response:
+    def get(self) -> Response:
         """Return the list of players that will be playing the most in the next 7 days"""
         args = greedy_players_parser.parse_args()
         filter = GreedyPlayersFilter(sport=str(args.get("sport")))
-        data = scrap_greedy_players(filter, site)
+        data = scrap_greedy_players(filter, g.site)
         return jsonify(data)
