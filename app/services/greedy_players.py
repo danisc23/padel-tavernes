@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from app.models import GreedyPlayerInfo, GreedyPlayersFilter
-from app.services.get_weekly_dates import get_weekly_dates
+from app.services.common import get_weekly_dates
 
 
 def scrap_greedy_players(filter: GreedyPlayersFilter, site: str) -> list:

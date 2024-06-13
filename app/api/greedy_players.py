@@ -2,7 +2,7 @@ from flask import Response, g, jsonify
 from flask_restx import Namespace, Resource, reqparse
 
 from app.models import GreedyPlayersFilter
-from app.services.scrap_greedy_players import scrap_greedy_players
+from app.services.greedy_players import scrap_greedy_players
 
 ns = Namespace(
     "greedy-players", description="Return the list of players that will be playing the most in the next 7 days"

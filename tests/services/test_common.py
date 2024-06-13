@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 
 from app.models import GreedyPlayersFilter, MatchFilter
-from app.services.get_weekly_dates import get_weekly_dates
+from app.services.common import get_weekly_dates
 
 
 class TestGetWeeklyDatesMatchFilter:

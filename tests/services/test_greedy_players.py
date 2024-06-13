@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from freezegun import freeze_time
 
 from app.models import GreedyPlayersFilter
-from app.services.scrap_greedy_players import scrap_greedy_players
+from app.services.greedy_players import scrap_greedy_players
 
 
 @freeze_time("2024-06-11")
@@ -21,7 +21,7 @@ class TestScrapGreedyPlayers:
     """
     SITE = "fakesite.com"
 
-    @patch("app.services.scrap_greedy_players.requests.get")
+    @patch("app.services.greedy_players.requests.get")
     def test_scrap_greedy_players(self, mock_requests_get):
         """Returns the list of greedy players filtering out club and invited players."""
         mock_response = Mock()
@@ -48,7 +48,7 @@ class TestScrapGreedyPlayers:
         assert result[2]["different_dates"] == 1
         assert result[2]["dates"] == ["2024-06-11"]
 
-    @patch("app.services.scrap_greedy_players.requests.get")
+    @patch("app.services.greedy_players.requests.get")
     @freeze_time("2024-06-11")
     def test_scrap_greedy_players_date_filter(self, mock_requests_get):
         """Returns the list of greedy players only for the specified days."""
@@ -63,7 +63,7 @@ class TestScrapGreedyPlayers:
         assert len(result) == 3
         assert all(date == "2024-06-11" for date in result[0]["dates"])
 
-    @patch("app.services.scrap_greedy_players.requests.get")
+    @patch("app.services.greedy_players.requests.get")
     def test_scrap_greedy_players_sorting(self, mock_requests_get):
         """Returns the list of greedy players sorted by count, different_dates, and name."""
         html_content = """

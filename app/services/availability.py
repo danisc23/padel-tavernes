@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup, Tag
 from unidecode import unidecode
 
 from app.models import MatchFilter, MatchInfo
-from app.services.get_weekly_dates import get_weekly_dates
+from app.services.common import get_weekly_dates
 
 
 def check_filters(match_info: MatchInfo, match_filter: MatchFilter) -> bool:
@@ -19,7 +19,7 @@ def check_filters(match_info: MatchInfo, match_filter: MatchFilter) -> bool:
     return True
 
 
-def scrap_court_data(filter: MatchFilter, site: str) -> list:
+def scrap_court_data(filter: MatchFilter, site: str) -> list[MatchInfo]:
     data = []
     for date in get_weekly_dates(filter):
         url = f"https://www.{site}/partidas/{date}#contenedor-partidas"
@@ -47,5 +47,5 @@ def scrap_court_data(filter: MatchFilter, site: str) -> list:
                         is_available="partida-reservada" not in match["class"],
                     )
                     if check_filters(match_info, filter):
-                        data.append(match_info.model_dump())
+                        data.append(match_info)
     return data
