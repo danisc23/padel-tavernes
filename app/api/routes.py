@@ -11,7 +11,7 @@ authorizations = {
         "type": "apiKey",
         "in": "header",
         "name": "X-SITE",
-        "description": "Optional header to specify the site. Default: esportentavernesblanques.es",
+        "description": "Optional header to specify the site. Default: All known sites.",
     }
 }
 api = Api(

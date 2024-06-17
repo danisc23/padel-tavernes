@@ -1,22 +1,29 @@
 import pytest
-from flask import Flask, g, jsonify
+from flask import Flask, g
 from flask.testing import FlaskClient
+
+from app.services.sites import SUPPORTED_SITES
 
 
 @pytest.fixture
-def client_site(app: Flask) -> FlaskClient:
-    @app.route("/site")
-    def get_site():
-        return jsonify({"site": g.site})
+def middleware_client(app: Flask) -> FlaskClient:
+    @app.route("/test")
+    def test_middlewares():
+        return "ok"
 
     return app.test_client()
 
 
-def test_site_middleware_default(client_site):
-    response = client_site.get("/site")
-    assert response.json["site"] == "esportentavernesblanques.es"
+def test_site_middleware_default(middleware_client):
+    response = middleware_client.get("/test")
+    assert response.text == "ok"
+    assert g.sites == SUPPORTED_SITES
 
 
-def test_site_middleware_custom(client_site):
-    response = client_site.get("/site", headers={"X-SITE": "customsite.com"})
-    assert response.json["site"] == "customsite.com"
+def test_site_middleware_custom(middleware_client):
+    response = middleware_client.get("/test", headers={"X-SITE": "customsite.com"})
+    assert response.text == "ok"
+    assert len(g.sites) == 1
+    assert g.sites[0].url == "customsite.com"
+    assert g.sites[0].name == "Unknown"
+    assert g.sites[0].coordinates is None

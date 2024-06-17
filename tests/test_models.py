@@ -14,9 +14,15 @@ from app.models import (
 
 
 class TestMatchInfo:
-    def test_match_info_creation(self) -> None:
+    def test_match_info_creation(self, example_site) -> None:
         match_info = MatchInfo(
-            sport="padel", court="Court 1", date="2024-06-12", time="10:00", url="http://example.com", is_available=True
+            sport="padel",
+            court="Court 1",
+            date="2024-06-12",
+            time="10:00",
+            url="http://example.com",
+            is_available=True,
+            site=example_site,
         )
         assert match_info.sport == "padel"
         assert match_info.court == "Court 1"

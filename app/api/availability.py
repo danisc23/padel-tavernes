@@ -2,7 +2,7 @@ from flask import Response, g, jsonify
 from flask_restx import Namespace, Resource, reqparse
 
 from app.models import MatchFilter
-from app.services.availability import scrap_court_data
+from app.services.availability import get_court_data
 
 ns = Namespace("availability", description="See court availability")
 
@@ -31,5 +31,5 @@ class CourtAvailability(Resource):
             is_available=args.get("is_available"),
             days=args.get("days", "0123456"),
         )
-        data = scrap_court_data(filter, g.site)
+        data = get_court_data(filter, g.sites)
         return jsonify([match.model_dump() for match in data])

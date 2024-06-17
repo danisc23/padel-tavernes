@@ -4,7 +4,7 @@ import requests
 from bs4 import BeautifulSoup, Tag
 from unidecode import unidecode
 
-from app.models import MatchFilter, MatchInfo
+from app.models import MatchFilter, MatchInfo, SiteInfo
 from app.services.common import get_weekly_dates
 
 
@@ -19,10 +19,10 @@ def check_filters(match_info: MatchInfo, match_filter: MatchFilter) -> bool:
     return True
 
 
-def scrap_court_data(filter: MatchFilter, site: str) -> list[MatchInfo]:
+def scrap_court_data(filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
     data = []
     for date in get_weekly_dates(filter):
-        url = f"https://www.{site}/partidas/{date}#contenedor-partidas"
+        url = f"https://www.{site.url}/partidas/{date}#contenedor-partidas"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
 
@@ -45,7 +45,17 @@ def scrap_court_data(filter: MatchFilter, site: str) -> list[MatchInfo]:
                         time=match.find("a").get_text(strip=True),
                         url=match.find("a")["href"],
                         is_available="partida-reservada" not in match["class"],
+                        site=site,
                     )
                     if check_filters(match_info, filter):
                         data.append(match_info)
+    return data
+
+
+def get_court_data(filter: MatchFilter, sites: list[SiteInfo]) -> list[MatchInfo]:
+    data: list[MatchInfo] = []
+    for site in sites:
+        data.extend(scrap_court_data(filter, site))
+
+    data.sort(key=lambda x: (x.date, x.time))
     return data
