@@ -1,9 +1,18 @@
-from app.models import CourtUsage, Match, MatchFilter, SportUsage, UsageResponse
-from app.services.availability import scrap_court_data
+from app.models import (
+    CourtUsage,
+    Match,
+    MatchFilter,
+    SiteInfo,
+    SportUsage,
+    UsageResponse,
+)
+from app.services.availability import get_court_data
 
 
-def get_court_usage(filter: MatchFilter, site: str) -> UsageResponse:
-    court_data = scrap_court_data(filter, site)
+def get_court_usage(filter: MatchFilter, sites: list[SiteInfo]) -> UsageResponse:
+    if len(sites) != 1:
+        raise ValueError("Please provide only one site by using X-SITE header")
+    court_data = get_court_data(filter, sites)
 
     response = UsageResponse(sports=[])
     for match in court_data:

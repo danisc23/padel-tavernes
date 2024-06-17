@@ -3,6 +3,17 @@ import re
 from pydantic import BaseModel, Field, computed_field, field_validator
 
 
+class SiteInfo(BaseModel):
+    name: str
+    url: str
+    coordinates: tuple[float, float] | None = None
+
+
+class AvailableSitesResponse(BaseModel):
+    sites: list[SiteInfo]
+    last_update: str
+
+
 class MatchInfo(BaseModel):
     sport: str
     court: str
@@ -10,6 +21,7 @@ class MatchInfo(BaseModel):
     time: str
     url: str
     is_available: bool
+    site: SiteInfo
 
 
 class MatchFilter(BaseModel):
