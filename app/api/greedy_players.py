@@ -21,5 +21,5 @@ class GreedyPlayers(Resource):
         """Return the list of players that will be playing the most in the next 7 days"""
         args = greedy_players_parser.parse_args()
         filter = GreedyPlayersFilter(sport=str(args.get("sport")))
-        data = scrap_greedy_players(filter, g.site)
+        data = scrap_greedy_players(filter, g.sites)
         return jsonify(data)

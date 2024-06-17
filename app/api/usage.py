@@ -60,7 +60,7 @@ class SportUsage(Resource):
         """See sport usage"""
         args = usage_parser.parse_args()
         filter = MatchFilter(sport=args.get("sport"), days=args.get("days", "0123456"))
-        data = get_court_usage(filter, g.site).model_dump()
+        data = get_court_usage(filter, g.sites).model_dump()
         for sport in data["sports"]:
             for court in sport["courts"]:
                 court.pop("matches")
