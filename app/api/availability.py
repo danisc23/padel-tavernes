@@ -1,8 +1,11 @@
-from flask import Response, g, jsonify
+from flask import Response, jsonify
 from flask_restx import Namespace, Resource, reqparse
 
+from app.api.sites import get_geolocation_filter
+from app.context_helpers import get_sites
 from app.models import MatchFilter
 from app.services.availability import get_court_data
+from app.services.sites import filter_sites_by_distance
 
 ns = Namespace("availability", description="See court availability")
 
@@ -18,6 +21,9 @@ availability_parser.add_argument(
     location="args",
     default="0123456",
 )
+availability_parser.add_argument("latitude", type=float, help="Reference latitude coordinate", location="args")
+availability_parser.add_argument("longitude", type=float, help="Reference longitude coordinate", location="args")
+availability_parser.add_argument("radius_km", type=float, help="Search radius in km", location="args")
 
 
 @ns.route("/")
@@ -26,10 +32,13 @@ class CourtAvailability(Resource):
     def get(self) -> Response:
         """See court availability"""
         args = availability_parser.parse_args()
-        filter = MatchFilter(
+        geolocation_filter = get_geolocation_filter(args.get("latitude"), args.get("longitude"), args.get("radius_km"))
+        sites = filter_sites_by_distance(get_sites(), geolocation_filter) if geolocation_filter else get_sites()
+
+        match_filter = MatchFilter(
             sport=args.get("sport"),
             is_available=args.get("is_available"),
             days=args.get("days", "0123456"),
         )
-        data = get_court_data(filter, g.sites)
+        data = get_court_data(match_filter, sites)
         return jsonify([match.model_dump() for match in data])

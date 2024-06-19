@@ -133,7 +133,7 @@ Take in mind that the [Webs de padel](https://www.websdepadel.com/) platform is 
 - [ ] Create and updatable db to easily increase the number of clubs (currently is hardcoded).
 - [ ] Improve the way filters are defined (currently is hardcoded, each club has different sports).
 - [ ] To improve Swagger documentation would be nice to use models and arguments definitions in the good way.
-- [ ] Add the capability to filter by geolocation (I should even force this since the amount of clubs is increasing and I don't want to DDOS the websites).
+- [x] Add the capability to filter by geolocation (I should even force this since the amount of clubs is increasing and I don't want to DDOS the websites).
 - [ ] Cache the results to avoid scraping the websites every time (At least for half an hour, same reason as before).
 - [ ] Parallelize the scraping to make it faster.
 - [ ] Create a web that implements this api.
