@@ -1,12 +1,16 @@
 import json
 
-from flask_restx import Api
-from pydantic import ValidationError
+from flask_restx import Api, ValidationError
+from pydantic import ValidationError as PydanticValidationError
 from werkzeug.exceptions import HTTPException
 
 
-def handle_validation_error(e: ValidationError) -> tuple[dict, int]:
+def handle_pydantic_validation_error(e: PydanticValidationError) -> tuple[dict, int]:
     return {"error": "validation_error", "message": json.loads(e.json(include_url=False, include_context=False))}, 400
+
+
+def handle_validation_error(e: ValidationError) -> tuple[dict, int]:
+    return {"error": "value_error", "message": str(e)}, 400
 
 
 def handle_value_error(e: ValueError) -> tuple[dict, int]:
@@ -22,6 +26,7 @@ def handle_internal_error(e: Exception) -> tuple[dict, int]:
 
 
 def init_error_handlers(api: Api) -> None:
+    api.error_handlers[PydanticValidationError] = handle_pydantic_validation_error  # type: ignore
     api.error_handlers[ValidationError] = handle_validation_error  # type: ignore
     api.error_handlers[ValueError] = handle_value_error  # type: ignore
     api.error_handlers[HTTPException] = handle_http_exception  # type: ignore

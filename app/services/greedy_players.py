@@ -3,11 +3,14 @@ from collections import defaultdict
 import requests
 from bs4 import BeautifulSoup
 
-from app.models import GreedyPlayerInfo, GreedyPlayersFilter
+from app.models import GreedyPlayerInfo, GreedyPlayersFilter, SiteInfo
 from app.services.common import get_weekly_dates
 
 
-def scrap_greedy_players(filter: GreedyPlayersFilter, site: str) -> list:
+def scrap_greedy_players(filter: GreedyPlayersFilter, sites: list[SiteInfo]) -> list:
+    if len(sites) != 1:
+        raise ValueError("Please provide only one site by using X-SITE header")
+    site = sites[0].url
     player_dict: dict = defaultdict(GreedyPlayerInfo)
     for date in get_weekly_dates(filter):
         url = f"https://www.{site}/partidas/{filter.sport}/{date}"

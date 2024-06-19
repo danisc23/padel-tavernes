@@ -24,6 +24,33 @@ class MatchInfo(BaseModel):
     site: SiteInfo
 
 
+class GeolocationFilter(BaseModel):
+    latitude: float
+    longitude: float
+    radius_km: float
+
+    @field_validator("latitude", mode="before")
+    @classmethod
+    def validate_latitude(cls, value: float) -> float:
+        if not -90 <= value <= 90:
+            raise ValueError("latitude must be between -90 and 90")
+        return value
+
+    @field_validator("longitude", mode="before")
+    @classmethod
+    def validate_longitude(cls, value: float) -> float:
+        if not -180 <= value <= 180:
+            raise ValueError("longitude must be between -180 and 180")
+        return value
+
+    @field_validator("radius_km", mode="before")
+    @classmethod
+    def validate_radius_km(cls, value: float) -> float:
+        if value <= 0:
+            raise ValueError("radius_km must be greater than 0")
+        return value
+
+
 class MatchFilter(BaseModel):
     sport: str | None = None
     is_available: bool | None = None

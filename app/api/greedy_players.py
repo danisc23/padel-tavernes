@@ -1,6 +1,7 @@
-from flask import Response, g, jsonify
+from flask import Response, jsonify
 from flask_restx import Namespace, Resource, reqparse
 
+from app.context_helpers import get_sites
 from app.models import GreedyPlayersFilter
 from app.services.greedy_players import scrap_greedy_players
 
@@ -21,5 +22,5 @@ class GreedyPlayers(Resource):
         """Return the list of players that will be playing the most in the next 7 days"""
         args = greedy_players_parser.parse_args()
         filter = GreedyPlayersFilter(sport=str(args.get("sport")))
-        data = scrap_greedy_players(filter, g.sites)
+        data = scrap_greedy_players(filter, get_sites())
         return jsonify(data)
