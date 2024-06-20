@@ -3,6 +3,7 @@ from app.models import (
     Match,
     MatchFilter,
     SiteInfo,
+    SiteType,
     SportUsage,
     UsageResponse,
 )
@@ -12,6 +13,12 @@ from app.services.availability import get_court_data
 def get_court_usage(filter: MatchFilter, sites: list[SiteInfo]) -> UsageResponse:
     if len(sites) != 1:
         raise ValueError("Please provide only one site by using X-SITE header")
+
+    if sites[0].type != SiteType.WEBSDEPADEL:
+        raise ValueError(
+            f"Site type {sites[0].type} is not supported for usage data. Currently only {SiteType.WEBSDEPADEL.value} is supported."
+        )
+
     court_data = get_court_data(filter, sites)
 
     response = UsageResponse(sports=[])

@@ -1,14 +1,18 @@
+from flask_caching import Cache
 from flask_restx import Namespace, Resource, ValidationError, fields
 
+from app import app
 from app.models import GeolocationFilter
 from app.services.sites import get_available_sites
+
+cache = Cache(app, config={"CACHE_TYPE": "SimpleCache"})
 
 ns = Namespace("tested sites", description="Get the list of supported sites and last update (may be outdated)")
 
 tested_sites_parser = ns.parser()
 tested_sites_parser.add_argument("latitude", type=float, help="Reference latitude coordinate", location="args")
 tested_sites_parser.add_argument("longitude", type=float, help="Reference longitude coordinate", location="args")
-tested_sites_parser.add_argument("radius_km", type=float, help="Search radius in km", location="args")
+tested_sites_parser.add_argument("radius_km", type=int, help="Search radius in km", location="args")
 
 
 tested_sites_model = ns.model(
@@ -22,6 +26,7 @@ tested_sites_model = ns.model(
                         "name": fields.String,
                         "url": fields.String,
                         "coordinates": fields.List(fields.Float),
+                        "type": fields.String,
                     },
                 )
             )
@@ -32,9 +37,9 @@ tested_sites_model = ns.model(
 
 
 def get_geolocation_filter(
-    latitude: float | None, longitude: float | None, radius_km: float | None
+    latitude: float | None, longitude: float | None, radius_km: int | None
 ) -> GeolocationFilter | None:
-    if type(latitude) is float and type(longitude) is float and type(radius_km) is float:
+    if type(latitude) is float and type(longitude) is float and type(radius_km) is int:
         return GeolocationFilter(latitude=latitude, longitude=longitude, radius_km=radius_km)
 
     if any([latitude, longitude, radius_km]):
@@ -47,6 +52,7 @@ def get_geolocation_filter(
 class AvailableSites(Resource):
     @ns.expect(tested_sites_parser)
     @ns.marshal_with(tested_sites_model)
+    @cache.cached(timeout=86400, query_string=True)
     def get(self) -> dict:
         """Get the list of supported sites and last update (may be outdated)"""
         args = tested_sites_parser.parse_args()

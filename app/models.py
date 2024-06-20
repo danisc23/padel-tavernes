@@ -1,12 +1,23 @@
 import re
+from enum import Enum
 
 from pydantic import BaseModel, Field, computed_field, field_validator
+
+
+class SiteType(str, Enum):
+    WEBSDEPADEL = "websdepadel"
+    MATCHPOINT = "matchpoint"
+    PLAYTOMIC = "playtomic"
 
 
 class SiteInfo(BaseModel):
     name: str
     url: str
+    type: SiteType
     coordinates: tuple[float, float] | None = None
+
+    class Config:
+        use_enum_values = True
 
 
 class AvailableSitesResponse(BaseModel):
@@ -27,7 +38,7 @@ class MatchInfo(BaseModel):
 class GeolocationFilter(BaseModel):
     latitude: float
     longitude: float
-    radius_km: float
+    radius_km: int
 
     @field_validator("latitude", mode="before")
     @classmethod
@@ -45,7 +56,7 @@ class GeolocationFilter(BaseModel):
 
     @field_validator("radius_km", mode="before")
     @classmethod
-    def validate_radius_km(cls, value: float) -> float:
+    def validate_radius_km(cls, value: int) -> float:
         if value <= 0:
             raise ValueError("radius_km must be greater than 0")
         return value

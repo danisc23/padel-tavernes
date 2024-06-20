@@ -14,7 +14,8 @@ def middleware_client(app: Flask) -> FlaskClient:
     return app.test_client()
 
 
-def test_site_middleware_default(middleware_client):
+def test_site_middleware_default(mocker, middleware_client):
+    mocker.patch("app.services.sites.get_playtomic_sites", return_value=[])
     response = middleware_client.get("/test")
     assert response.text == "ok"
     assert g.sites == SUPPORTED_SITES

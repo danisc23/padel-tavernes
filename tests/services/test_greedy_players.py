@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 from freezegun import freeze_time
 
-from app.models import GreedyPlayersFilter, SiteInfo
+from app.models import GreedyPlayersFilter, SiteInfo, SiteType
 from app.services.greedy_players import scrap_greedy_players
 
 
@@ -20,7 +20,7 @@ class TestScrapGreedyPlayers:
         <span class="nick">Player2</span>
     </div>
     """
-    SITE = SiteInfo(name="Site", url="http://example.com")
+    SITE = SiteInfo(name="Site", url="http://example.com", type=SiteType.WEBSDEPADEL)
 
     @patch("app.services.greedy_players.requests.get")
     def test_scrap_greedy_players(self, mock_requests_get):
@@ -103,5 +103,15 @@ class TestScrapGreedyPlayers:
 
     def test_scrap_greedy_players_one_site_limit(self):
         greedy_filter = GreedyPlayersFilter(sport="padel", days="0")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError) as exc_info:
             scrap_greedy_players(greedy_filter, [self.SITE, self.SITE])
+        assert str(exc_info.value) == "Please provide only one site by using X-SITE header"
+
+    def test_scrap_greedy_players_unsupported_site_type(self, playtomic_site):
+        greedy_filter = GreedyPlayersFilter(sport="padel", days="0")
+        with pytest.raises(ValueError) as exc_info:
+            scrap_greedy_players(greedy_filter, [playtomic_site])
+        assert (
+            str(exc_info.value)
+            == "Site type playtomic is not supported for greedy players. Currently only websdepadel is supported."
+        )

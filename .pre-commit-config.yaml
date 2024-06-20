@@ -70,3 +70,4 @@ repos:
           - 'mypy.ini'
         additional_dependencies:
           - types-requests
+          - types-pytz

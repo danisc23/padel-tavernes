@@ -1,11 +1,17 @@
-from datetime import datetime
+import logging
+from datetime import datetime, timedelta
 
+import pytz
 import requests
 from bs4 import BeautifulSoup, Tag
 from unidecode import unidecode
 
-from app.models import MatchFilter, MatchInfo, SiteInfo
+from app.models import MatchFilter, MatchInfo, SiteInfo, SiteType
 from app.services.common import get_weekly_dates
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 
 def check_filters(match_info: MatchInfo, match_filter: MatchFilter) -> bool:
@@ -19,7 +25,8 @@ def check_filters(match_info: MatchInfo, match_filter: MatchFilter) -> bool:
     return True
 
 
-def scrap_court_data(filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
+def scrap_websdepadel_court_data(filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
+    logging.info(f"Scraping {site.name} - {site.type}")
     data = []
     for date in get_weekly_dates(filter):
         url = f"https://www.{site.url}/partidas/{date}#contenedor-partidas"
@@ -52,10 +59,81 @@ def scrap_court_data(filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
     return data
 
 
+def filter_playtomic_results(date: str, start_time: str, duration: int, used_start_times: set[str]) -> bool:
+    # Filter to artificially reduce the amount of data
+    match_date = datetime.strptime(f"{date} {start_time}", "%Y-%m-%d %H:%M:%S")
+    if match_date < datetime.now():
+        return False
+
+    if duration != 90:
+        return False
+
+    if start_time in used_start_times:
+        return False
+
+    return True
+
+
+def scrap_playtomic_court_data(filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
+    logging.info(f"Scraping {site.name} - {site.type}")
+    data = []
+    base_url = "https://playtomic.io/api/v1/availability"
+    params = {
+        "user_id": "me",
+        "tenant_id": site.url.split("/")[-1],
+        "sport_id": "PADEL",
+    }
+    court_friendly_name: dict[str, str] = {}
+    for date in get_weekly_dates(filter):
+        params["local_start_min"] = f"{date}T00:00:00"
+        params["local_start_max"] = f"{date}T23:59:59"
+        response = requests.get(base_url, params=params)
+        if response.status_code != 200:
+            logger.error(f"Error scraping {site.name} - {site.type.value}: {response.text}")
+            continue
+
+        for court in response.json():
+            # Assign a friendly name to the court instead of the uuid
+            if court["resource_id"] not in court_friendly_name:
+                court_friendly_name[court["resource_id"]] = f"Padel {len(court_friendly_name) + 1}"
+
+            used_start_times: set[str] = set()
+            for slot in court["slots"]:
+                if not filter_playtomic_results(date, slot["start_time"], slot["duration"], used_start_times):
+                    continue
+
+                time = datetime.strptime(slot["start_time"], "%H:%M:%S")
+                used_start_times.add(slot["start_time"])
+                used_start_times.add((time + timedelta(minutes=30)).strftime("%H:%M:%S"))
+                used_start_times.add((time + timedelta(hours=1)).strftime("%H:%M:%S"))
+
+                # time is +00:00, so we need to convert it to the local timezone
+                time_utc = pytz.utc.localize(datetime.strptime(f"{date} {slot['start_time']}", "%Y-%m-%d %H:%M:%S"))
+                time_str = time_utc.astimezone(pytz.timezone("Europe/Madrid")).strftime("%H:%M")
+
+                match_info = MatchInfo(
+                    sport="padel",
+                    court=court_friendly_name[court["resource_id"]],
+                    date=date,
+                    time=time_str,
+                    url=site.url,
+                    is_available=True,
+                    site=site,
+                )
+                if check_filters(match_info, filter):
+                    data.append(match_info)
+
+    return data
+
+
 def get_court_data(filter: MatchFilter, sites: list[SiteInfo]) -> list[MatchInfo]:
     data: list[MatchInfo] = []
     for site in sites:
-        data.extend(scrap_court_data(filter, site))
+        match site.type:
+            case SiteType.WEBSDEPADEL:
+                data.extend(scrap_websdepadel_court_data(filter, site))
+            case SiteType.PLAYTOMIC:
+                data.extend(scrap_playtomic_court_data(filter, site))
 
     data.sort(key=lambda x: (x.date, x.time))
     return data

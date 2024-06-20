@@ -1,11 +1,15 @@
 from flask import Response, jsonify
+from flask_caching import Cache
 from flask_restx import Namespace, Resource, reqparse
 
+from app import app
 from app.api.sites import get_geolocation_filter
 from app.context_helpers import get_sites
 from app.models import MatchFilter
 from app.services.availability import get_court_data
 from app.services.sites import filter_sites_by_distance
+
+cache = Cache(app, config={"CACHE_TYPE": "SimpleCache"})
 
 ns = Namespace("availability", description="See court availability")
 
@@ -23,12 +27,13 @@ availability_parser.add_argument(
 )
 availability_parser.add_argument("latitude", type=float, help="Reference latitude coordinate", location="args")
 availability_parser.add_argument("longitude", type=float, help="Reference longitude coordinate", location="args")
-availability_parser.add_argument("radius_km", type=float, help="Search radius in km", location="args")
+availability_parser.add_argument("radius_km", type=int, help="Search radius in km", location="args")
 
 
 @ns.route("/")
 class CourtAvailability(Resource):
     @ns.expect(availability_parser)
+    @cache.cached(timeout=1800, query_string=True)
     def get(self) -> Response:
         """See court availability"""
         args = availability_parser.parse_args()
