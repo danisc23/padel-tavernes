@@ -1,21 +1,18 @@
 from flask import Response, jsonify
-from flask_caching import Cache
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace, Resource, inputs
 
-from app import app
 from app.api.common import headers_parser
+from app.cache import cache
 from app.context_helpers import get_sites
 from app.models import MatchFilter
 from app.services.availability import get_court_data
-
-cache = Cache(app, config={"CACHE_TYPE": "SimpleCache"})
 
 ns = Namespace("availability", description="See court availability")
 
 availability_parser = headers_parser.copy()
 availability_parser.add_argument("sport", type=str, help="filter by sport, (padel, tenis...)", location="args")
 availability_parser.add_argument(
-    "is_available", type=bool, help="see courts available or not available for booking", location="args"
+    "is_available", type=inputs.boolean, help="see courts available or not available for booking", location="args"
 )
 availability_parser.add_argument(
     "days",
@@ -28,13 +25,14 @@ availability_parser.add_argument(
 
 def get_cache_availabilty_key() -> str:
     args = availability_parser.parse_args()
-    return f"{args.get('sport')}-{args.get('is_available')}-{args.get('days')}-{args.get('X-SITE')}-{args.get('X-GEOLOCATION')}"
+    key = f"{args.get('sport')}-{args.get('is_available')}-{args.get('days')}-{args.get('X-SITE')}-{args.get('X-GEOLOCATION')}"
+    return key
 
 
 @ns.route("/")
 class CourtAvailability(Resource):
     @ns.expect(availability_parser)
-    @cache.cached(timeout=1800, key_prefix=get_cache_availabilty_key)  # type: ignore
+    @cache.cached(timeout=1800, key_prefix=get_cache_availabilty_key)
     def get(self) -> Response:
         """See court availability"""
         args = availability_parser.parse_args()
