@@ -1,12 +1,8 @@
-from flask_caching import Cache
 from flask_restx import Namespace, Resource, fields
 
-from app import app
 from app.api.common import headers_parser
 from app.context_helpers import get_geo_filter
 from app.services.sites import get_available_sites
-
-cache = Cache(app, config={"CACHE_TYPE": "SimpleCache"})
 
 ns = Namespace("tested sites", description="Get the list of supported sites and last update (may be outdated)")
 
