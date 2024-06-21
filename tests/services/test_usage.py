@@ -93,8 +93,16 @@ def test_get_court_usage(get_court_data, example_site) -> None:
     assert result == expected
 
 
-@patch("app.services.usage.get_court_data")
-def test_get_court_usage_limited_to_1_site(mock_get_court_data, example_site) -> None:
-    mock_get_court_data.return_value = []
-    with pytest.raises(ValueError):
+def test_get_court_usage_limited_to_1_site(example_site) -> None:
+    with pytest.raises(ValueError) as exc_info:
         get_court_usage(MatchFilter(days="0"), [example_site, example_site])
+    assert str(exc_info.value) == "Please provide only one site by using X-SITE header"
+
+
+def test_scrap_greedy_players_unsupported_site_type(playtomic_site):
+    with pytest.raises(ValueError) as exc_info:
+        get_court_usage(MatchFilter(days="0"), [playtomic_site])
+    assert (
+        str(exc_info.value)
+        == "Site type playtomic is not supported for usage data. Currently only websdepadel is supported."
+    )

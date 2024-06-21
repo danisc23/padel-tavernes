@@ -6,18 +6,17 @@ from app.models import MatchInfo
 
 
 @patch("app.api.availability.get_court_data")
-def test_get_returns_response(mock_scrap_court_data, client) -> None:
-    mock_scrap_court_data.return_value = []
+def test_get_returns_response(mock_get_court_data, client) -> None:
+    mock_get_court_data.return_value = []
     response = client.get("/api/availability/?sport=padel")
     assert isinstance(response, Response)
 
 
-@patch("app.api.availability.get_court_data")
-def test_get_returns_json_response_with_court_data(mock_scrap_court_data, client, example_site) -> None:
-    """Information returned by the API is the same as the one returned by the scrap_court_data service
+def test_get_returns_json_response_with_court_data(mocker, client, example_site) -> None:
+    """Information returned by the API is the same as the one returned by the scrap_websdepadel_court_data service
     so this is straightforward to test."""
 
-    mock_scrap_court_data.return_value = [
+    return_value = [
         MatchInfo(
             sport="padel",
             court="Court 1",
@@ -37,6 +36,7 @@ def test_get_returns_json_response_with_court_data(mock_scrap_court_data, client
             site=example_site,
         ),
     ]
+    mocker.patch("app.api.availability.get_court_data", return_value=return_value)
 
     response = client.get("/api/availability/?sport=padel")
     json_data = response.get_json()

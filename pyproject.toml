@@ -14,6 +14,7 @@ pydantic = "^2.7.3"
 unidecode = "^1.3.8"
 flask-restx = "^1.3.0"
 geopy = "^2.4.1"
+flask-caching = "^2.3.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
@@ -26,6 +27,8 @@ types-requests = "^2.32.0.20240602"
 types-beautifulsoup4 = "^4.12.0.20240511"
 freezegun = "^1.5.1"
 flake8-print = "^5.0.0"
+pytest-mock = "^3.14.0"
+types-pytz = "^2024.1.0.20240417"
 
 [build-system]
 requires = ["poetry-core"]

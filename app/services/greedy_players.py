@@ -3,13 +3,19 @@ from collections import defaultdict
 import requests
 from bs4 import BeautifulSoup
 
-from app.models import GreedyPlayerInfo, GreedyPlayersFilter, SiteInfo
+from app.models import GreedyPlayerInfo, GreedyPlayersFilter, SiteInfo, SiteType
 from app.services.common import get_weekly_dates
 
 
 def scrap_greedy_players(filter: GreedyPlayersFilter, sites: list[SiteInfo]) -> list:
     if len(sites) != 1:
         raise ValueError("Please provide only one site by using X-SITE header")
+
+    if sites[0].type != SiteType.WEBSDEPADEL:
+        raise ValueError(
+            f"Site type {sites[0].type} is not supported for greedy players. Currently only {SiteType.WEBSDEPADEL.value} is supported."
+        )
+
     site = sites[0].url
     player_dict: dict = defaultdict(GreedyPlayerInfo)
     for date in get_weekly_dates(filter):
