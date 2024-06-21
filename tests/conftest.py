@@ -1,3 +1,4 @@
+import socket
 from typing import Iterable
 
 import pytest
@@ -7,6 +8,13 @@ from flask.testing import FlaskClient
 from app.api.routes import api
 from app.middleware import site_middleware
 from app.models import SiteInfo, SiteType
+
+
+def guard(*args, **kwargs):
+    raise Exception("Network calls are not allowed in tests")
+
+
+socket.socket = guard  # type: ignore
 
 
 @pytest.fixture
