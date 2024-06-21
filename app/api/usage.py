@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource, fields
 
+from app.api.common import headers_parser
 from app.context_helpers import get_sites
 from app.models import MatchFilter
 from app.services.usage import get_court_usage
@@ -41,7 +42,7 @@ response_model = ns.model(
     },
 )
 
-usage_parser = ns.parser()
+usage_parser = headers_parser.copy()
 usage_parser.add_argument("sport", type=str, help="filter by sport, (padel, tenis...)", location="args")
 usage_parser.add_argument(
     "days",
@@ -50,6 +51,7 @@ usage_parser.add_argument(
     location="args",
     default="0123456",
 )
+usage_parser.remove_argument("X-GEOLOCATION")
 
 
 @ns.route("/")

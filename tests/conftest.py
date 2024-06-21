@@ -31,7 +31,9 @@ def example_site() -> SiteInfo:
 
 @pytest.fixture
 def playtomic_site() -> SiteInfo:
-    return SiteInfo(url="playtomic.io/name/uuid", name="Playtomic", type=SiteType.PLAYTOMIC)
+    return SiteInfo(
+        url="playtomic.io/name/uuid", name="Playtomic", type=SiteType.PLAYTOMIC, coordinates=(39.469908, -0.376288)
+    )
 
 
 @pytest.fixture

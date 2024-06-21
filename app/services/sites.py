@@ -56,26 +56,14 @@ SUPPORTED_SITES = [
 SITES_BY_URL = {site.url: site for site in SUPPORTED_SITES}
 
 
-def find_site_by_url_or_unknown(url: str) -> SiteInfo:
-    # TODO: This should also get the website type as a parameter.
-    return SITES_BY_URL.get(url, SiteInfo(name="Unknown", url=url, type=SiteType.WEBSDEPADEL))
-
-
 def filter_sites_by_distance(sites: list[SiteInfo], geo_filter: GeolocationFilter) -> list[SiteInfo]:
     center = (geo_filter.latitude, geo_filter.longitude)
     return [site for site in sites if great_circle(center, site.coordinates).km <= geo_filter.radius_km]
 
 
-def get_available_sites(geo_filter: GeolocationFilter | None = None) -> AvailableSitesResponse:
-    sites = filter_sites_by_distance(SUPPORTED_SITES, geo_filter) if geo_filter else list(SUPPORTED_SITES)
-    sites.extend(get_playtomic_sites(geo_filter))
-    return AvailableSitesResponse(sites=sites, last_update="2024-06-20")
-
-
-def get_playtomic_sites(geo_filter: GeolocationFilter | None = None) -> list[SiteInfo]:
+def get_playtomic_sites(geo_filter: GeolocationFilter) -> list[SiteInfo]:
     # Call Playtomic API to get the list of sites using the GeolocationFilter
     sites: list[SiteInfo] = []
-    geo_filter = geo_filter or GeolocationFilter(latitude=39.469908, longitude=-0.376288, radius_km=50)  # Valencia
     request = requests.get(
         (
             "https://playtomic.io/api/v1/tenants?user_id=me&playtomic_status=ACTIVE&with_properties=ALLOWS_CASH_PAYMENT&"
@@ -92,3 +80,14 @@ def get_playtomic_sites(geo_filter: GeolocationFilter | None = None) -> list[Sit
     except Exception as e:  # TODO: Specify the exception type + Add lint rule to not use bare except.
         logger.error(f"Error getting Playtomic sites: {e}")
     return sites
+
+
+def find_site_by_url_or_unknown(url: str) -> SiteInfo:
+    # TODO: This should also get the website type as a parameter.
+    return SITES_BY_URL.get(url, SiteInfo(name="Unknown", url=url, type=SiteType.WEBSDEPADEL))
+
+
+def get_available_sites(geo_filter: GeolocationFilter) -> AvailableSitesResponse:
+    sites = filter_sites_by_distance(SUPPORTED_SITES, geo_filter) if geo_filter else list(SUPPORTED_SITES)
+    sites.extend(get_playtomic_sites(geo_filter))
+    return AvailableSitesResponse(sites=sites, last_update="2024-06-20")

@@ -20,9 +20,10 @@ def test_find_site_by_url_returns_known_site():
     assert response.coordinates == (39.5082456, -0.3612918)
 
 
-def test_get_available_sites_returns_all_sites(mocker):
+def test_get_available_sites_returns_all_supported_sites(mocker):
     mocker.patch("app.services.sites.get_playtomic_sites", return_value=[])
-    response = get_available_sites()
+    geolocation_filter = GeolocationFilter(latitude=39.469908, longitude=-0.376288, radius_km=100)
+    response = get_available_sites(geolocation_filter)
     assert len(response.sites) == len(SUPPORTED_SITES)
 
 
