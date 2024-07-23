@@ -15,9 +15,11 @@ from app.services.availability import (
 
 @fixture(scope="class")
 def patch_cache_and_requests_class():
-    with patch("app.services.availability.cache.get") as mock_cache_get, patch(
-        "app.services.availability.cache.set"
-    ) as mock_cache_set, patch("app.services.availability.requests.get") as mock_requests_get:
+    with (
+        patch("app.services.availability.cache.get") as mock_cache_get,
+        patch("app.services.availability.cache.set") as mock_cache_set,
+        patch("app.services.availability.requests.get") as mock_requests_get,
+    ):
         mock_cache_get.return_value = None
         yield mock_cache_get, mock_cache_set, mock_requests_get
 
