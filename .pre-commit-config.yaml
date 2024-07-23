@@ -1,5 +1,5 @@
 repos:
-    # General linters
+  # General linters
   - repo: 'https://github.com/pre-commit/pre-commit-hooks'
     rev: v4.4.0
     hooks:
@@ -20,6 +20,7 @@ repos:
           - '--branch'
           - master
       - id: debug-statements
+
   - repo: 'https://github.com/alessandrojcm/commitlint-pre-commit-hook'
     rev: v2.2.3
     hooks:
@@ -29,16 +30,17 @@ repos:
         additional_dependencies:
           - '@commitlint/config-conventional'
 
-    # Python linters
+  # Python linters
   - repo: 'https://github.com/psf/black'
-    rev: 23.9.1
+    rev: 24.4.2
     hooks:
       - id: black
         args:
           - '--line-length'
           - '120'
           - '--target-version'
-          - 'py310'
+          - 'py312'
+
   - repo: 'https://github.com/myint/autoflake'
     rev: v2.2.0
     hooks:
@@ -48,6 +50,7 @@ repos:
           - '--remove-all-unused-imports'
           - '--remove-unused-variable'
           - '--ignore-init-module-imports'
+
   - repo: 'https://github.com/pycqa/isort'
     rev: 5.12.0
     hooks:
@@ -56,13 +59,15 @@ repos:
           - '--ca'
           - '--profile'
           - 'black'
+
   - repo: 'https://github.com/pycqa/flake8'
-    rev: 6.1.0
+    rev: 7.1.0
     hooks:
       - id: flake8
         additional_dependencies: ['flake8-print']
+
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v1.5.1'
+    rev: 'v1.11.0'
     hooks:
       - id: mypy
         args:
@@ -71,3 +76,4 @@ repos:
         additional_dependencies:
           - types-requests
           - types-pytz
+          - types-beautifulsoup4
