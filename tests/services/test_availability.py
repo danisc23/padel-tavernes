@@ -38,32 +38,30 @@ class TestCheckFilters:
             site=example_site,
         )
 
-    def test_check_filters_sport_matching(self, match_info):
-        match_filter = MatchFilter(sport="padel", is_available=None, days="0123456")
+    @fixture
+    def match_filter(self) -> MatchFilter:
+        return MatchFilter(sport="padel", is_available=True, days="012", time_min="10:00", time_max="13:00")
+
+    def test_check_filters_sport_matching(self, match_info, match_filter):
         assert check_filters(match_info, match_filter) is True
 
-    def test_check_filters_sport_not_matching(self, match_info):
+    def test_check_filters_sport_not_matching(self, match_info, match_filter):
         match_info.sport = "tenis"
-        match_filter = MatchFilter(sport="padel", is_available=None, days="0123456")
         assert check_filters(match_info, match_filter) is False
 
-    def test_check_filters_availability_matching(self, match_info):
-        match_filter = MatchFilter(sport="padel", is_available=True, days="0123456")
+    def test_check_filters_availability_matching(self, match_info, match_filter):
         assert check_filters(match_info, match_filter) is True
 
-    def test_check_filters_availability_not_matching(self, match_info):
+    def test_check_filters_availability_not_matching(self, match_info, match_filter):
         match_info.is_available = False
-        match_filter = MatchFilter(sport="padel", is_available=True, days="0123456")
         assert check_filters(match_info, match_filter) is False
 
-    def test_check_filters_date_not_past(self, match_info):
+    def test_check_filters_date_not_past(self, match_info, match_filter):
         match_info.date = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-        match_filter = MatchFilter(sport="padel", is_available=True, days="0123456")
         assert check_filters(match_info, match_filter) is True
 
-    def test_check_filters_date_past(self, match_info):
+    def test_check_filters_date_past(self, match_info, match_filter):
         match_info.date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-        match_filter = MatchFilter(sport="padel", is_available=True, days="0123456")
         assert check_filters(match_info, match_filter) is False
 
 
@@ -72,7 +70,7 @@ class TestCheckFilters:
 class TestScrapPlaytomicCourtData:
     @fixture
     def match_filter(self) -> MatchFilter:
-        return MatchFilter(days="0")
+        return MatchFilter(days="0", time_min="12:00", time_max="15:00")
 
     @patch("app.services.availability.requests.get")
     def test_scrap_playtomic_court_data(self, mock_requests_get, playtomic_site, match_filter):
@@ -236,7 +234,10 @@ class TestWebsDePadelScrapCourtData:
             <li class="pista">
                 <span class="nombre">Court 2</span>
                 <li class="partida">
-                    <a href="http://example.com/match3">14:00</a>
+                    <a href="http://example.com/match3">13:00</a>
+                </li>
+                <li class="partida">
+                    <a href="http://example.com/match5">14:00</a>
                 </li>
             </li>
         </li>
@@ -267,7 +268,7 @@ class TestWebsDePadelScrapCourtData:
         mock_response.text = self.HTML_CONTENT
         mock_requests_get.return_value = mock_response
 
-        match_filter = MatchFilter(days="0")
+        match_filter = MatchFilter(days="0", time_min="10:00", time_max="13:00")
         result = scrap_websdepadel_court_data(match_filter, example_site)
 
         assert len(result) == 4
@@ -288,7 +289,7 @@ class TestWebsDePadelScrapCourtData:
         assert result[2].sport == "Padel"
         assert result[2].court == "Court 2"
         assert result[2].date == "2024-06-11"
-        assert result[2].time == "14:00"
+        assert result[2].time == "13:00"
         assert result[2].url == "http://example.com/match3"
         assert result[2].is_available is True
 
@@ -308,7 +309,7 @@ class TestWebsDePadelScrapCourtData:
         mock_response.text = self.HTML_CONTENT
         mock_requests_get.return_value = mock_response
 
-        match_filter = MatchFilter(days="0")
+        match_filter = MatchFilter(days="0", time_min="10:00", time_max="13:00")
         result = scrap_websdepadel_court_data(match_filter, example_site)
 
         assert len(result) == 2
@@ -321,7 +322,25 @@ class TestWebsDePadelScrapCourtData:
         assert result[1].sport == "Padel"
         assert result[1].court == "Court 2"
         assert result[1].date == "2024-06-11"
-        assert result[1].time == "14:00"
+        assert result[1].time == "13:00"
+
+    @patch("app.services.availability.requests.get")
+    def test_scrap_websdepadel_court_hour_filter(self, mock_requests_get, example_site):
+        """Returns only matches that are not in the past."""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.text = self.HTML_CONTENT
+        mock_requests_get.return_value = mock_response
+
+        match_filter = MatchFilter(days="0", time_min="13:30", time_max="14:30")
+        result = scrap_websdepadel_court_data(match_filter, example_site)
+
+        assert len(result) == 1
+
+        assert result[0].sport == "Padel"
+        assert result[0].court == "Court 2"
+        assert result[0].date == "2024-06-11"
+        assert result[0].time == "14:00"
 
     @patch("app.services.availability.requests.get")
     def test_scrap_websdepadel_court_data_filter_by_sport(self, mock_requests_get, example_site):
@@ -332,7 +351,7 @@ class TestWebsDePadelScrapCourtData:
         mock_requests_get.return_value = mock_response
 
         # Filter by sport "tenis"
-        filter_tenis = MatchFilter(sport="tenis", is_available=None, days="0")
+        filter_tenis = MatchFilter(sport="tenis", is_available=None, days="0", time_min="10:00", time_max="13:00")
         result = scrap_websdepadel_court_data(filter_tenis, example_site)
         assert len(result) == 1
         assert result[0].sport == "Tenis"
@@ -346,13 +365,13 @@ class TestWebsDePadelScrapCourtData:
         mock_requests_get.return_value = mock_response
 
         # Filter by availability False
-        filter_not_available = MatchFilter(is_available=False, days="0")
+        filter_not_available = MatchFilter(is_available=False, days="0", time_min="10:00", time_max="13:00")
         result = scrap_websdepadel_court_data(filter_not_available, example_site)
         assert len(result) == 1
         assert result[0].is_available is False
 
         # Filter by availability True
-        filter_available = MatchFilter(is_available=True, days="0")
+        filter_available = MatchFilter(is_available=True, days="0", time_min="10:00", time_max="13:00")
         result = scrap_websdepadel_court_data(filter_available, example_site)
         assert len(result) == 3
         assert all(match.is_available is True for match in result)
@@ -365,20 +384,18 @@ class TestWebsDePadelScrapCourtData:
         mock_response.text = self.HTML_CONTENT
         mock_requests_get.return_value = mock_response
 
-        filter_days_1 = MatchFilter(days="01", sport="Tenis", is_available=None)
+        filter_days_1 = MatchFilter(days="01", sport="Tenis", is_available=None, time_min="10:00", time_max="13:00")
         result = scrap_websdepadel_court_data(filter_days_1, example_site)
         assert len(result) == 2
         assert result[0].date == "2024-06-11"
         assert result[1].date == "2024-06-12"
 
-        filter_days_2 = MatchFilter(days="23456", sport="Tenis", is_available=None)
+        filter_days_2 = MatchFilter(days="456", sport="Tenis", is_available=None, time_min="10:00", time_max="13:00")
         result = scrap_websdepadel_court_data(filter_days_2, example_site)
-        assert len(result) == 5
-        assert result[0].date == "2024-06-13"
-        assert result[1].date == "2024-06-14"
-        assert result[2].date == "2024-06-15"
-        assert result[3].date == "2024-06-16"
-        assert result[4].date == "2024-06-17"
+        assert len(result) == 3
+        assert result[0].date == "2024-06-15"
+        assert result[1].date == "2024-06-16"
+        assert result[2].date == "2024-06-17"
 
 
 class TestGetCourtData:
@@ -393,7 +410,7 @@ class TestGetCourtData:
     @patch("app.services.availability.scrap_playtomic_court_data")
     @patch("app.services.availability.scrap_websdepadel_court_data")
     def test_get_court_data_calls(self, mock_scrap_websdepadel_court_data, mock_scrap_playtomic_court_data, sites):
-        get_court_data(MatchFilter(days="0"), sites)
+        get_court_data(MatchFilter(days="0", time_min="10:00", time_max="13:00"), sites)
         assert mock_scrap_websdepadel_court_data.call_count == 2
         assert mock_scrap_playtomic_court_data.call_count == 1
 
@@ -438,7 +455,7 @@ class TestGetCourtData:
         )
 
         mock_scrap_websdepadel_court_data.return_value = [match1, match2, match3, match4]
-        response = get_court_data(MatchFilter(days="0"), [sites[0]])
+        response = get_court_data(MatchFilter(days="0", time_min="10:00", time_max="13:00"), [sites[0]])
 
         assert len(response) == 4
         assert response[0].court == "Court 2"

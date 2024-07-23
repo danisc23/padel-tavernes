@@ -1,7 +1,9 @@
 import re
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Self
 
-from pydantic import BaseModel, Field, computed_field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator, model_validator
 
 
 class SiteType(str, Enum):
@@ -65,19 +67,51 @@ class GeolocationFilter(BaseModel):
 class MatchFilter(BaseModel):
     sport: str | None = None
     is_available: bool | None = None
-    days: str = "0123456"
+    days: str
+    time_min: str
+    time_max: str
 
     @field_validator("days", mode="before")
     @classmethod
     def validate_days(cls, value: str) -> str:
-        if not re.match(r"^[0-6]*$", value):
-            raise ValueError("days must be a string containing digits 0-6 only")
+        if not (1 <= len(value) <= 3):
+            raise ValueError("days must be a string containing 1 to 3 digits")
         if len(set(value)) != len(value):
             raise ValueError("days must have unique digits")
         int_days = sorted([int(d) for d in value])
         if not all(0 <= d <= 6 for d in int_days):
             raise ValueError("days must have digits between 0 and 6")
+        if not all(b - a == 1 for a, b in zip(int_days, int_days[1:])):
+            raise ValueError("days must be consecutive")
+
         return value
+
+    @field_validator("time_min", mode="before")
+    @classmethod
+    def validate_time_min(cls, value: str) -> str:
+        if not re.match(r"^(?:[01]\d|2[0-3]):[0-5]\d$", value):
+            raise ValueError("time_min must be a string in the format HH:MM")
+        return value
+
+    @field_validator("time_max", mode="before")
+    @classmethod
+    def validate_time_max(cls, value: str) -> str:
+        if not re.match(r"^(?:[01]\d|2[0-3]):[0-5]\d$", value):
+            raise ValueError("time_max must be a string in the format HH:MM")
+        return value
+
+    @model_validator(mode="after")
+    def check_time_difference(self) -> Self:
+        time_min = self.time_min
+        time_max = self.time_max
+        if time_min and time_max:
+            time_min_dt = datetime.strptime(time_min, "%H:%M")
+            time_max_dt = datetime.strptime(time_max, "%H:%M")
+            if time_max_dt - time_min_dt > timedelta(hours=3):
+                raise ValueError("The difference between time_min and time_max must not exceed 3 hours")
+            if time_max_dt < time_min_dt:
+                raise ValueError("time_max must be greater than time_min")
+        return self
 
 
 class GreedyPlayerInfo(BaseModel):
