@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
 from freezegun import freeze_time
-from pytest import fixture
+from pytest import fixture, mark
 
 from app.models import MatchFilter, MatchInfo, SiteInfo, SiteType
 from app.services.availability import (
@@ -11,6 +11,15 @@ from app.services.availability import (
     scrap_playtomic_court_data,
     scrap_websdepadel_court_data,
 )
+
+
+@fixture(scope="class")
+def patch_cache_and_requests_class():
+    with patch("app.services.availability.cache.get") as mock_cache_get, patch(
+        "app.services.availability.cache.set"
+    ) as mock_cache_set, patch("app.services.availability.requests.get") as mock_requests_get:
+        mock_cache_get.return_value = None
+        yield mock_cache_get, mock_cache_set, mock_requests_get
 
 
 @freeze_time("2024-06-11")
@@ -57,6 +66,7 @@ class TestCheckFilters:
 
 
 @freeze_time("2024-06-20")
+@mark.usefixtures("patch_cache_and_requests_class")
 class TestScrapPlaytomicCourtData:
     @fixture
     def match_filter(self) -> MatchFilter:
