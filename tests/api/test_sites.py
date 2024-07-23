@@ -47,7 +47,7 @@ class TestGetPlaytomicSites:
 
         assert len(sites) == 1
         assert sites[0].name == "Playtomic Test Site"
-        assert sites[0].url == "https://playtomic.io/club_padel/67890"
+        assert sites[0].url == "https://playtomic.io/tenant/67890"
         assert sites[0].coordinates == (40.416775, -3.70379)
         assert sites[0].type == SiteType.PLAYTOMIC
 
