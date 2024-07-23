@@ -6,10 +6,11 @@ import requests
 from bs4 import BeautifulSoup, Tag
 from unidecode import unidecode
 
+from app.cache import cache
 from app.models import MatchFilter, MatchInfo, SiteInfo, SiteType
 from app.services.common import get_weekly_dates
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S", format="%(asctime)s - %(levelname)s - %(message)s")
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,11 @@ def scrap_websdepadel_court_data(filter: MatchFilter, site: SiteInfo) -> list[Ma
     logging.info(f"Scraping {site.name} - {site.type}")
     data = []
     for date in get_weekly_dates(filter):
+        date_data = []
+        if cached_data := cache.get(f"{site.url}-{filter.sport}-{filter.is_available}-{date}"):
+            data.extend(cached_data)
+            continue
+
         url = f"https://www.{site.url}/partidas/{date}#contenedor-partidas"
         response = requests.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
@@ -55,7 +61,10 @@ def scrap_websdepadel_court_data(filter: MatchFilter, site: SiteInfo) -> list[Ma
                         site=site,
                     )
                     if check_filters(match_info, filter):
-                        data.append(match_info)
+                        date_data.append(match_info)
+
+        cache.set(f"{site.url}-{filter.sport}-{filter.is_available}-{date}", date_data, timeout=1800)
+        data.extend(date_data)
     return data
 
 
@@ -85,6 +94,11 @@ def scrap_playtomic_court_data(filter: MatchFilter, site: SiteInfo) -> list[Matc
     }
     court_friendly_name: dict[str, str] = {}
     for date in get_weekly_dates(filter):
+        date_data = []
+        if cached_data := cache.get(f"{site.url}-{filter.sport}-{filter.is_available}-{date}"):
+            data.extend(cached_data)
+            continue
+
         params["local_start_min"] = f"{date}T00:00:00"
         params["local_start_max"] = f"{date}T23:59:59"
         response = requests.get(base_url, params=params)
@@ -121,7 +135,10 @@ def scrap_playtomic_court_data(filter: MatchFilter, site: SiteInfo) -> list[Matc
                     site=site,
                 )
                 if check_filters(match_info, filter):
-                    data.append(match_info)
+                    date_data.append(match_info)
+
+        cache.set(f"{site.url}-{filter.sport}-{filter.is_available}-{date}", date_data, timeout=1800)
+        data.extend(date_data)
 
     return data
 
