@@ -74,7 +74,7 @@ def get_playtomic_sites(geo_filter: GeolocationFilter) -> list[SiteInfo]:
         response = request.json()
         for tenant in response:
             name = tenant["tenant_name"]
-            url = f"https://playtomic.io/{tenant['tenant_uid']}/{tenant['tenant_id']}"
+            url = f"https://playtomic.io/tenant/{tenant['tenant_id']}"
             coordinates = float(tenant["address"]["coordinate"]["lat"]), float(tenant["address"]["coordinate"]["lon"])
             sites.append(SiteInfo(name=name, url=url, coordinates=coordinates, type=SiteType.PLAYTOMIC))
     except Exception as e:  # TODO: Specify the exception type + Add lint rule to not use bare except.
@@ -87,7 +87,7 @@ def find_site_by_url_or_unknown(url: str) -> SiteInfo:
     return SITES_BY_URL.get(url, SiteInfo(name="Unknown", url=url, type=SiteType.WEBSDEPADEL))
 
 
-def get_available_sites(geo_filter: GeolocationFilter) -> AvailableSitesResponse:
+def get_available_sites(geo_filter: GeolocationFilter, with_playtomic: bool = True) -> AvailableSitesResponse:
     sites = filter_sites_by_distance(SUPPORTED_SITES, geo_filter) if geo_filter else list(SUPPORTED_SITES)
     sites.extend(get_playtomic_sites(geo_filter))
     return AvailableSitesResponse(sites=sites, last_update="2024-06-20")
