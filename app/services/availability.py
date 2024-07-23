@@ -26,12 +26,20 @@ def check_filters(match_info: MatchInfo, match_filter: MatchFilter) -> bool:
     return True
 
 
+def time_not_in_range(match_time: str, time_min: str, time_max: str) -> bool:
+    dt_match_time = datetime.strptime(match_time, "%H:%M")
+    dt_time_min = datetime.strptime(time_min, "%H:%M")
+    dt_time_max = datetime.strptime(time_max, "%H:%M")
+    return not (dt_time_min <= dt_match_time <= dt_time_max)
+
+
 def scrap_websdepadel_court_data(filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
     logging.info(f"Scraping {site.name} - {site.type}")
     data = []
     for date in get_weekly_dates(filter):
+        cache_key = f"{site.url}-{filter.sport}-{filter.is_available}-{date}-{filter.time_min}-{filter.time_max}"
         date_data = []
-        if cached_data := cache.get(f"{site.url}-{filter.sport}-{filter.is_available}-{date}"):
+        if cached_data := cache.get(cache_key):
             data.extend(cached_data)
             continue
 
@@ -51,6 +59,9 @@ def scrap_websdepadel_court_data(filter: MatchFilter, site: SiteInfo) -> list[Ma
                 court_name = court.find("span", class_="nombre").get_text(strip=True)
                 matchs = court.find_all("li", class_="partida")
                 for match in matchs:
+                    time = match.find("a").get_text(strip=True)
+                    if time_not_in_range(time, filter.time_min, filter.time_max):
+                        continue
                     match_info = MatchInfo(
                         sport=sport_name,
                         court=court_name,
@@ -63,7 +74,7 @@ def scrap_websdepadel_court_data(filter: MatchFilter, site: SiteInfo) -> list[Ma
                     if check_filters(match_info, filter):
                         date_data.append(match_info)
 
-        cache.set(f"{site.url}-{filter.sport}-{filter.is_available}-{date}", date_data, timeout=1800)
+        cache.set(cache_key, date_data, timeout=1800)
         data.extend(date_data)
     return data
 
@@ -94,13 +105,14 @@ def scrap_playtomic_court_data(filter: MatchFilter, site: SiteInfo) -> list[Matc
     }
     court_friendly_name: dict[str, str] = {}
     for date in get_weekly_dates(filter):
+        cache_key = f"{site.url}-{filter.sport}-{filter.is_available}-{date}-{filter.time_min}-{filter.time_max}"
         date_data = []
-        if cached_data := cache.get(f"{site.url}-{filter.sport}-{filter.is_available}-{date}"):
+        if cached_data := cache.get(cache_key):
             data.extend(cached_data)
             continue
 
-        params["local_start_min"] = f"{date}T00:00:00"
-        params["local_start_max"] = f"{date}T23:59:59"
+        params["local_start_min"] = f"{date}T{filter.time_min}:00"
+        params["local_start_max"] = f"{date}T{filter.time_max}:00"
         response = requests.get(base_url, params=params)
         if response.status_code != 200:
             logger.error(f"Error scraping {site.name} - {site.type.value}: {response.text}")
@@ -137,7 +149,7 @@ def scrap_playtomic_court_data(filter: MatchFilter, site: SiteInfo) -> list[Matc
                 if check_filters(match_info, filter):
                     date_data.append(match_info)
 
-        cache.set(f"{site.url}-{filter.sport}-{filter.is_available}-{date}", date_data, timeout=1800)
+        cache.set(cache_key, date_data, timeout=1800)
         data.extend(date_data)
 
     return data

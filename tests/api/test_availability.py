@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from flask import Response
+from freezegun import freeze_time
 
 from app.models import MatchInfo
 
@@ -12,6 +13,7 @@ def test_get_returns_response(mock_get_court_data, client) -> None:
     assert isinstance(response, Response)
 
 
+@freeze_time("2024-06-11 10:00:00")
 def test_get_returns_json_response_with_court_data(mocker, client, example_site) -> None:
     """Information returned by the API is the same as the one returned by the scrap_websdepadel_court_data service
     so this is straightforward to test."""
