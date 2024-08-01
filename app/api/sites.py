@@ -17,6 +17,7 @@ tested_sites_model = ns.model(
                         "name": fields.String,
                         "url": fields.String,
                         "coordinates": fields.List(fields.Float),
+                        "distance_km": fields.Float,
                         "type": fields.String,
                     },
                 )

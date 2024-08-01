@@ -16,6 +16,7 @@ site_info_model = ns.model(
         "url": fields.String,
         "type": fields.String,
         "coordinates": fields.List(fields.Float),
+        "distance_km": fields.Float,
     },
 )
 

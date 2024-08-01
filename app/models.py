@@ -17,6 +17,7 @@ class SiteInfo(BaseModel):
     url: str
     type: SiteType
     coordinates: tuple[float, float] | None = None
+    distance_km: float | None = None
 
     class Config:
         use_enum_values = True

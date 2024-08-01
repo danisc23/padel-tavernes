@@ -58,7 +58,17 @@ SITES_BY_URL = {site.url: site for site in SUPPORTED_SITES}
 
 def filter_sites_by_distance(sites: list[SiteInfo], geo_filter: GeolocationFilter) -> list[SiteInfo]:
     center = (geo_filter.latitude, geo_filter.longitude)
-    return [site for site in sites if great_circle(center, site.coordinates).km <= geo_filter.radius_km]
+    return [
+        SiteInfo(
+            name=site.name,
+            url=site.url,
+            coordinates=site.coordinates,
+            type=site.type,
+            distance_km=great_circle(center, site.coordinates).km,
+        )
+        for site in sites
+        if great_circle(center, site.coordinates).km <= geo_filter.radius_km
+    ]
 
 
 def get_playtomic_sites(geo_filter: GeolocationFilter) -> list[SiteInfo]:
@@ -76,7 +86,10 @@ def get_playtomic_sites(geo_filter: GeolocationFilter) -> list[SiteInfo]:
             name = tenant["tenant_name"]
             url = f"https://playtomic.io/tenant/{tenant['tenant_id']}"
             coordinates = float(tenant["address"]["coordinate"]["lat"]), float(tenant["address"]["coordinate"]["lon"])
-            sites.append(SiteInfo(name=name, url=url, coordinates=coordinates, type=SiteType.PLAYTOMIC))
+            distance_km = great_circle((geo_filter.latitude, geo_filter.longitude), coordinates).km
+            sites.append(
+                SiteInfo(name=name, url=url, coordinates=coordinates, type=SiteType.PLAYTOMIC, distance_km=distance_km)
+            )
     except Exception as e:  # TODO: Specify the exception type + Add lint rule to not use bare except.
         logger.error(f"Error getting Playtomic sites: {e}")
     return sites

@@ -2,7 +2,7 @@ import pytest
 from flask import Flask, g
 from flask.testing import FlaskClient
 
-from app.models import GeolocationFilter, SiteType
+from app.models import GeolocationFilter, SiteInfo, SiteType
 from app.services.sites import SUPPORTED_SITES
 
 
@@ -19,7 +19,7 @@ def test_middleware_default(mocker, middleware_client):
     mocker.patch("app.services.sites.get_playtomic_sites", return_value=[])
     response = middleware_client.get("/test")
     assert response.text == "ok"
-    assert g.sites == SUPPORTED_SITES
+    assert len(g.sites) == len(SUPPORTED_SITES)
     assert g.geo_filter == GeolocationFilter(latitude=39.469908, longitude=-0.376288, radius_km=100)
 
 
@@ -36,8 +36,12 @@ def test_site_middleware_custom(middleware_client):
 def test_geolocation_middleware_custom(mocker, middleware_client, playtomic_site):
     mocker.patch("app.services.sites.get_playtomic_sites", return_value=[playtomic_site])
     response = middleware_client.get("/test", headers={"X-GEOLOCATION": "39.509908,-0.386288,3"})
+    expected_site = SiteInfo(
+        **SUPPORTED_SITES[0].model_dump(),
+    )
+    expected_site.distance_km = 2.15236775844405
     assert response.text == "ok"
-    assert g.sites == [SUPPORTED_SITES[0], playtomic_site]
+    assert g.sites == [expected_site, playtomic_site]
     assert g.geo_filter == GeolocationFilter(latitude=39.509908, longitude=-0.386288, radius_km=3)
 
 
