@@ -8,7 +8,7 @@ from app.models import MatchFilter, SiteInfo, SiteType
 
 
 @freeze_time("2024-06-11")
-@patch(WebsdepadelScrapper.__module__ + ".requests.get")
+@patch("app.integrations.scrapers.websdepadel_scraper.requests.get")
 class TestWebsDePadelScrapCourtData:
     HTML_CONTENT = """
     <div id="resumen-disponibilidad">

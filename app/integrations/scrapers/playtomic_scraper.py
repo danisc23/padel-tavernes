@@ -4,7 +4,6 @@ from typing import Self
 import pytz
 import requests
 
-from app.cache import cache
 from app.integrations.scrapers.scraper_interface import ScrapperInterface
 from app.models import MatchFilter, MatchInfo, SiteInfo
 from app.services.common import check_filters, get_weekly_dates
@@ -27,10 +26,10 @@ class PlaytomicScrapper(ScrapperInterface):
         }
         court_friendly_name: dict[str, str] = {}
         for date in get_weekly_dates(filter):
-            cache_key = f"{site.url}-{filter.sport}-{filter.is_available}-{date}-{filter.time_min}-{filter.time_max}"
-            date_data = []
-            if cached_data := cache.get(cache_key):
-                data.extend(cached_data)
+            cache_key = self._generate_cache_key(site, filter, date)
+            date_data = self._get_cached_data(cache_key)
+            if date_data:
+                data.extend(date_data)
                 continue
 
             params["local_start_min"] = f"{date}T{filter.time_min}:00"
@@ -70,7 +69,7 @@ class PlaytomicScrapper(ScrapperInterface):
                     if check_filters(match_info, filter):
                         date_data.append(match_info)
 
-            cache.set(cache_key, date_data, timeout=1800)
+            self._cache_data(cache_key, date_data)
             data.extend(date_data)
 
         return data
