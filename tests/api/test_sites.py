@@ -31,7 +31,7 @@ class TestGetPlaytomicSites:
     def geo_filter(self) -> GeolocationFilter:
         return GeolocationFilter(latitude=40.416775, longitude=-3.703790, radius_km=25)
 
-    @patch("app.services.availability.requests.get")
+    @patch("app.services.sites.requests.get")
     def test_get_playtomic_sites_success(self, mock_get, geo_filter: GeolocationFilter):
         mock_response = Mock()
         mock_response.json.return_value = [
@@ -55,7 +55,7 @@ class TestGetPlaytomicSites:
         assert "coordinate=40.416775%2C-3.70379" in args[0]
         assert "radius=25000" in args[0]
 
-    @patch("app.services.availability.requests.get")
+    @patch("app.services.sites.requests.get")
     def test_get_playtomic_sites_error(self, mock_get, geo_filter: GeolocationFilter):
         mock_response = Mock()
         mock_response.json.side_effect = ValueError("Invalid JSON")
