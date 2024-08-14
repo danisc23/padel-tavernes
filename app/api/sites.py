@@ -4,7 +4,7 @@ from app.api.common import headers_parser
 from app.context_helpers import get_geo_filter
 from app.services.sites import get_available_sites
 
-ns = Namespace("tested sites", description="Get the list of supported sites and last update (may be outdated)")
+ns = Namespace("sites", description="Get the list of supported sites and last update (may be outdated)")
 
 tested_sites_model = ns.model(
     "TestedSites",

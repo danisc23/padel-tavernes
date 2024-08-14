@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pytest
 from freezegun import freeze_time
 
-from app.models import GreedyPlayersFilter, MatchFilter, MatchInfo
+from app.models import MatchFilter, MatchInfo
 from app.services.common import check_filters, get_weekly_dates
 
 
@@ -16,26 +16,6 @@ class TestGetWeeklyDatesMatchFilter:
             (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d"),
         ]
         assert get_weekly_dates(match_filter) == expected_dates
-
-
-class TestGetWeeklyDatesGreedyPlayersFilter:
-    def test_get_weekly_dates_with_valid_greedy_players_filter(self) -> None:
-        greedy_players_filter = GreedyPlayersFilter(days="456")
-        expected_dates = [
-            (datetime.now() + timedelta(days=4)).strftime("%Y-%m-%d"),
-            (datetime.now() + timedelta(days=5)).strftime("%Y-%m-%d"),
-            (datetime.now() + timedelta(days=6)).strftime("%Y-%m-%d"),
-        ]
-        assert get_weekly_dates(greedy_players_filter) == expected_dates
-
-    def test_get_weekly_dates_with_empty_days_greedy_players_filter(self) -> None:
-        greedy_players_filter = GreedyPlayersFilter(days="")
-        expected_dates: list = []
-        assert get_weekly_dates(greedy_players_filter) == expected_dates
-
-    def test_get_weekly_dates_with_invalid_days_greedy_players_filter(self) -> None:
-        with pytest.raises(ValueError):
-            GreedyPlayersFilter(days="01234567")
 
 
 @freeze_time("2024-06-11")

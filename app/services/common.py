@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 
 from unidecode import unidecode
 
-from app.models import GreedyPlayersFilter, MatchFilter, MatchInfo
+from app.models import MatchFilter, MatchInfo
 
 
-def get_weekly_dates(match_filter: MatchFilter | GreedyPlayersFilter) -> list[str]:
+def get_weekly_dates(match_filter: MatchFilter) -> list[str]:
     return [
         (datetime.now() + timedelta(days=day)).strftime("%Y-%m-%d")
         for day in sorted([int(d) for d in match_filter.days])
