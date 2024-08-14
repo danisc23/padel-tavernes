@@ -13,7 +13,7 @@ class TestAvailableSites:
 
     def test_get_returns_response(self, mocker, client, playtomic_site, geo_filter) -> None:
         mocker.patch("app.services.sites.get_playtomic_sites", return_value=[playtomic_site])
-        response = client.get("/api/available-sites/", headers={"X-GEOLOCATION": "40.416775,-3.703790,25"})
+        response = client.get("/api/sites/", headers={"X-GEOLOCATION": "40.416775,-3.703790,25"})
         json_data = response.get_json()
         expected_response = get_available_sites(geo_filter).model_dump()
 
