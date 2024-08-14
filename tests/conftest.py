@@ -1,5 +1,6 @@
 import socket
 from typing import Iterable
+from unittest.mock import patch
 
 import pytest
 from flask import Flask
@@ -48,3 +49,13 @@ def playtomic_site() -> SiteInfo:
 def client(mocker, app: Flask, playtomic_site: SiteInfo) -> FlaskClient:
     mocker.patch("app.services.sites.get_playtomic_sites", return_value=[])
     return app.test_client()
+
+
+@pytest.fixture(scope="module")
+def patch_cache():
+    with (
+        patch("app.integrations.scrapers.scraper_interface.cache.get") as mock_cache_get,
+        patch("app.integrations.scrapers.scraper_interface.cache.set") as mock_cache_set,
+    ):
+        mock_cache_get.return_value = None
+        yield mock_cache_get, mock_cache_set

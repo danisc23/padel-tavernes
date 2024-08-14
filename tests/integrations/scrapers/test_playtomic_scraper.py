@@ -7,16 +7,6 @@ from app.integrations.scrapers import PlaytomicScraper
 from app.models import MatchFilter
 
 
-@fixture(scope="module")
-def patch_cache():
-    with (
-        patch("app.integrations.scrapers.scraper_interface.cache.get") as mock_cache_get,
-        patch("app.integrations.scrapers.scraper_interface.cache.set") as mock_cache_set,
-    ):
-        mock_cache_get.return_value = None
-        yield mock_cache_get, mock_cache_set
-
-
 @freeze_time("2024-06-20")
 @mark.usefixtures("patch_cache")
 @patch("app.integrations.scrapers.playtomic_scraper.requests.get")

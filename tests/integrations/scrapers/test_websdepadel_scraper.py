@@ -1,13 +1,14 @@
 from unittest.mock import Mock, patch
 
 from freezegun import freeze_time
-from pytest import fixture
+from pytest import fixture, mark
 
 from app.integrations.scrapers import WebsdepadelScraper
 from app.models import MatchFilter, SiteInfo, SiteType
 
 
 @freeze_time("2024-06-11")
+@mark.usefixtures("patch_cache")
 @patch("app.integrations.scrapers.websdepadel_scraper.requests.get")
 class TestWebsDePadelScrapCourtData:
     HTML_CONTENT = """
