@@ -3,12 +3,12 @@ from typing import Self
 import requests
 from bs4 import BeautifulSoup, Tag
 
-from app.integrations.scrapers.scraper_interface import ScrapperInterface
+from app.integrations.scrapers.scraper_interface import ScraperInterface
 from app.models import MatchFilter, MatchInfo, SiteInfo
 from app.services.common import check_filters, get_weekly_dates, time_not_in_range
 
 
-class WebsdepadelScrapper(ScrapperInterface):
+class WebsdepadelScraper(ScraperInterface):
     BASE_URL = "https://www.{site}/partidas/{date}#contenedor-partidas"
 
     def get_court_data(self: Self, filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:

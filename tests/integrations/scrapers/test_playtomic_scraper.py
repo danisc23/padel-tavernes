@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from freezegun import freeze_time
 from pytest import fixture, mark
 
-from app.integrations.scrapers import PlaytomicScrapper
+from app.integrations.scrapers import PlaytomicScraper
 from app.models import MatchFilter
 
 
@@ -45,7 +45,7 @@ class TestScrapPlaytomicCourtData:
         ]
         mock_requests_get.return_value = mock_response
 
-        result = PlaytomicScrapper().get_court_data(match_filter, playtomic_site)
+        result = PlaytomicScraper().get_court_data(match_filter, playtomic_site)
 
         assert len(result) == 3
         assert result[0].sport == "padel"
@@ -90,7 +90,7 @@ class TestScrapPlaytomicCourtData:
         ]
         mock_requests_get.return_value = mock_response
 
-        result = PlaytomicScrapper().get_court_data(match_filter, playtomic_site)
+        result = PlaytomicScraper().get_court_data(match_filter, playtomic_site)
 
         assert len(result) == 1
         assert result[0].sport == "padel"
@@ -113,7 +113,7 @@ class TestScrapPlaytomicCourtData:
         ]
         mock_requests_get.return_value = mock_response
 
-        result = PlaytomicScrapper().get_court_data(match_filter, playtomic_site)
+        result = PlaytomicScraper().get_court_data(match_filter, playtomic_site)
 
         assert len(result) == 1
         assert result[0].sport == "padel"
@@ -137,7 +137,7 @@ class TestScrapPlaytomicCourtData:
         ]
         mock_requests_get.return_value = mock_response
 
-        result = PlaytomicScrapper().get_court_data(match_filter, playtomic_site)
+        result = PlaytomicScraper().get_court_data(match_filter, playtomic_site)
 
         assert len(result) == 2
         assert result[0].time == "12:00"
@@ -158,7 +158,7 @@ class TestScrapPlaytomicCourtData:
         ]
         mock_requests_get.return_value = mock_response
 
-        result = PlaytomicScrapper().get_court_data(match_filter, playtomic_site)
+        result = PlaytomicScraper().get_court_data(match_filter, playtomic_site)
 
         assert len(result) == 1
         assert result[0].time == "12:00"

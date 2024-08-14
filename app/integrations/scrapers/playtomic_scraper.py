@@ -4,12 +4,12 @@ from typing import Self
 import pytz
 import requests
 
-from app.integrations.scrapers.scraper_interface import ScrapperInterface
+from app.integrations.scrapers.scraper_interface import ScraperInterface
 from app.models import MatchFilter, MatchInfo, SiteInfo
 from app.services.common import check_filters, get_weekly_dates
 
 
-class PlaytomicScrapper(ScrapperInterface):
+class PlaytomicScraper(ScraperInterface):
     BASE_URL = "https://playtomic.io/api/v1/availability"
 
     def _reduce_results(self: Self, date: str, start_time: str, duration: int, used_start_times: set[str]) -> bool:

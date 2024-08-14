@@ -1,9 +1,9 @@
 from app.models import SiteType
 
-from .playtomic_scraper import PlaytomicScrapper
-from .websdepadel_scraper import WebsdepadelScrapper
+from .playtomic_scraper import PlaytomicScraper
+from .websdepadel_scraper import WebsdepadelScraper
 
-SCRAPPERS = {
-    SiteType.WEBSDEPADEL: WebsdepadelScrapper,
-    SiteType.PLAYTOMIC: PlaytomicScrapper,
+SCRAPERS = {
+    SiteType.WEBSDEPADEL: WebsdepadelScraper,
+    SiteType.PLAYTOMIC: PlaytomicScraper,
 }

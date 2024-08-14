@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from pytest import fixture
 
-from app.integrations.scrapers import PlaytomicScrapper, WebsdepadelScrapper
+from app.integrations.scrapers import PlaytomicScraper, WebsdepadelScraper
 from app.models import MatchFilter, MatchInfo, SiteInfo, SiteType
 from app.services.availability import get_court_data
 
@@ -16,14 +16,14 @@ class TestGetCourtData:
             SiteInfo(url="test.com", name="Test", type=SiteType.PLAYTOMIC),
         ]
 
-    @patch.object(PlaytomicScrapper, "get_court_data", return_value=[])
-    @patch.object(WebsdepadelScrapper, "get_court_data", return_value=[])
+    @patch.object(PlaytomicScraper, "get_court_data", return_value=[])
+    @patch.object(WebsdepadelScraper, "get_court_data", return_value=[])
     def test_get_court_data_calls(self, mock_scrap_websdepadel_court_data, mock_scrap_playtomic_court_data, sites):
         get_court_data(MatchFilter(days="0", time_min="10:00", time_max="13:00"), sites)
         assert mock_scrap_websdepadel_court_data.call_count == 2
         assert mock_scrap_playtomic_court_data.call_count == 1
 
-    @patch.object(WebsdepadelScrapper, "get_court_data")
+    @patch.object(WebsdepadelScraper, "get_court_data")
     def test_get_court_data_sorts(self, mock_scrap_websdepadel_court_data, sites):
         """Sorts the matches by date and time."""
         match1 = MatchInfo(
