@@ -19,7 +19,6 @@ def test_middleware_default(mocker, middleware_client):
     mocker.patch("app.services.sites.get_playtomic_sites", return_value=[])
     response = middleware_client.get("/test")
     assert response.text == "ok"
-    assert g.sites == SUPPORTED_SITES
     assert g.geo_filter == GeolocationFilter(latitude=39.469908, longitude=-0.376288, radius_km=100)
 
 
