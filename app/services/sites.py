@@ -54,7 +54,7 @@ SUPPORTED_SITES = [
     SiteInfo(
         name="BonPadel",
         url="bonpadel.matchpoint.com.es",
-        coordinates=(39.4656963, -0.3623308),
+        coordinates=(39.515722, -0.3685954),
         type=SiteType.MATCHPOINT,
     ),
     SiteInfo(

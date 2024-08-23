@@ -36,7 +36,7 @@ def test_geolocation_middleware_custom(mocker, middleware_client, playtomic_site
     mocker.patch("app.services.sites.get_playtomic_sites", return_value=[playtomic_site])
     response = middleware_client.get("/test", headers={"X-GEOLOCATION": "39.509908,-0.386288,3"})
     assert response.text == "ok"
-    assert g.sites == [SUPPORTED_SITES[0], playtomic_site]
+    assert g.sites == [SUPPORTED_SITES[0], SUPPORTED_SITES[7], playtomic_site]
     assert g.geo_filter == GeolocationFilter(latitude=39.509908, longitude=-0.386288, radius_km=3)
 
 

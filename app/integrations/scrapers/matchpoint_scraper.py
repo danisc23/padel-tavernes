@@ -95,7 +95,7 @@ class MatchpointScraper(ScraperInterface):
                             continue
                         match_info = MatchInfo(
                             sport=filter.sport or "padel",
-                            url=url,
+                            url=self.BASE_URL.format(site=site.url),
                             date=date,
                             time=start_time,
                             court=court_name,
