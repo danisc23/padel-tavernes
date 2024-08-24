@@ -15,9 +15,9 @@ class WebsdepadelScraper(ScraperInterface):
         data = []
         for date in get_weekly_dates(filter):
             cache_key = self._generate_cache_key(site, filter, date)
-            date_data = self._get_cached_data(cache_key)
-            if date_data:
-                data.extend(date_data)
+            daily_matches = self._get_cached_data(cache_key)
+            if daily_matches:
+                data.extend(daily_matches)
                 continue
 
             url = self.BASE_URL.format(site=site.url, date=date)
@@ -49,8 +49,8 @@ class WebsdepadelScraper(ScraperInterface):
                             site=site,
                         )
                         if check_filters(match_info, filter):
-                            date_data.append(match_info)
+                            daily_matches.append(match_info)
 
-            self._cache_data(cache_key, date_data)
-            data.extend(date_data)
+            self._cache_data(cache_key, daily_matches)
+            data.extend(daily_matches)
         return data

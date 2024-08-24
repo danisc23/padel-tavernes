@@ -51,6 +51,48 @@ SUPPORTED_SITES = [
         coordinates=(38.777681, -0.460267),
         type=SiteType.WEBSDEPADEL,
     ),
+    SiteInfo(
+        name="BonPadel",
+        url="bonpadel.matchpoint.com.es",
+        coordinates=(39.515722, -0.3685954),
+        type=SiteType.MATCHPOINT,
+    ),
+    SiteInfo(
+        name="Padel Interclub Meliana",
+        url="www.padelinterclub.com",
+        coordinates=(39.5246497, -0.3543332),
+        type=SiteType.MATCHPOINT,
+    ),
+    SiteInfo(
+        name="La Pobla Indoor",
+        url="padellapoblaindoor.matchpoint.com.es",
+        coordinates=(39.5846443, -0.3224196),
+        type=SiteType.MATCHPOINT,
+    ),
+    SiteInfo(
+        name="Padel 365",
+        url="padel365.matchpoint.com.es",
+        coordinates=(39.5868444, -0.5383648),
+        type=SiteType.MATCHPOINT,
+    ),
+    SiteInfo(
+        name="Valencia Tenis Center",
+        url="valenciateniscenter.matchpoint.com.es",
+        coordinates=(39.4801408, -0.3323505),
+        type=SiteType.MATCHPOINT,
+    ),
+    SiteInfo(
+        name="Padel Indoor X3",
+        url="x3padel.matchpoint.com.es",
+        coordinates=(37.9264372, -1.1721104),
+        type=SiteType.MATCHPOINT,
+    ),
+    SiteInfo(
+        name="One Padel Valencia",
+        url="onepadelvalencia.matchpoint.com.es",
+        coordinates=(39.5188506, -0.4612779),
+        type=SiteType.MATCHPOINT,
+    ),
 ]
 
 SITES_BY_URL = {site.url: site for site in SUPPORTED_SITES}
