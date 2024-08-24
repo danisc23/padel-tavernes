@@ -18,7 +18,7 @@ def get_court_data(
 ) -> list[SiteMatches]:
     data: list[SiteMatches] = []
     for site in sites:
-        site_matches = SCRAPERS[site.type]().get_court_data(filter, site)
+        site_matches = SCRAPERS[site.type](site, filter).get_site_matches()
         if geolocation_filter:
             for site_match in site_matches:
                 add_distance_to_site_matches(site_match, geolocation_filter, site)

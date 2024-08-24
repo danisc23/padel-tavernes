@@ -9,7 +9,7 @@ from app.models import MatchFilter, SiteInfo, SiteType
 
 @freeze_time("2024-06-11")
 @mark.usefixtures("patch_cache")
-@patch("app.integrations.scrapers.websdepadel_scraper.requests.get")
+@patch("app.integrations.scrapers.scraper_interface.requests.Session.get")
 class TestWebsDePadelScrapCourtData:
     HTML_CONTENT = """
     <div id="resumen-disponibilidad">
@@ -61,7 +61,7 @@ class TestWebsDePadelScrapCourtData:
         mock_requests_get.return_value = mock_response
 
         match_filter = MatchFilter(days="0", time_min="10:00", time_max="13:00")
-        result = WebsdepadelScraper().get_court_data(match_filter, example_site)
+        result = WebsdepadelScraper(example_site, match_filter).get_site_matches()
         matches = result[0].matches
 
         assert len(matches) == 4
@@ -98,7 +98,7 @@ class TestWebsDePadelScrapCourtData:
         mock_requests_get.return_value = mock_response
 
         match_filter = MatchFilter(days="0", time_min="10:00", time_max="13:00")
-        result = WebsdepadelScraper().get_court_data(match_filter, example_site)
+        result = WebsdepadelScraper(example_site, match_filter).get_site_matches()
         matches = result[0].matches
 
         assert len(matches) == 2
@@ -119,7 +119,7 @@ class TestWebsDePadelScrapCourtData:
         mock_requests_get.return_value = mock_response
 
         match_filter = MatchFilter(days="0", time_min="13:30", time_max="14:30")
-        result = WebsdepadelScraper().get_court_data(match_filter, example_site)
+        result = WebsdepadelScraper(example_site, match_filter).get_site_matches()
         matches = result[0].matches
 
         assert len(matches) == 1
@@ -137,7 +137,7 @@ class TestWebsDePadelScrapCourtData:
 
         # Filter by sport "tenis"
         filter_tenis = MatchFilter(sport="tenis", is_available=None, days="0", time_min="10:00", time_max="13:00")
-        result = WebsdepadelScraper().get_court_data(filter_tenis, example_site)
+        result = WebsdepadelScraper(example_site, filter_tenis).get_site_matches()
         matches = result[0].matches
         assert len(matches) == 1
         assert matches[0].sport == "Tenis"
@@ -151,14 +151,14 @@ class TestWebsDePadelScrapCourtData:
 
         # Filter by availability False
         filter_not_available = MatchFilter(is_available=False, days="0", time_min="10:00", time_max="13:00")
-        result = WebsdepadelScraper().get_court_data(filter_not_available, example_site)
+        result = WebsdepadelScraper(example_site, filter_not_available).get_site_matches()
         matches = result[0].matches
         assert len(matches) == 1
         assert matches[0].is_available is False
 
         # Filter by availability True
         filter_available = MatchFilter(is_available=True, days="0", time_min="10:00", time_max="13:00")
-        result = WebsdepadelScraper().get_court_data(filter_available, example_site)
+        result = WebsdepadelScraper(example_site, filter_available).get_site_matches()
         matches = result[0].matches
         assert len(matches) == 3
         assert all(match.is_available is True for match in matches)
@@ -171,13 +171,13 @@ class TestWebsDePadelScrapCourtData:
         mock_requests_get.return_value = mock_response
 
         filter_days_1 = MatchFilter(days="01", sport="Tenis", is_available=None, time_min="10:00", time_max="13:00")
-        result = WebsdepadelScraper().get_court_data(filter_days_1, example_site)
+        result = WebsdepadelScraper(example_site, filter_days_1).get_site_matches()
         assert len(result) == 2
         assert result[0].date == "2024-06-11"
         assert result[1].date == "2024-06-12"
 
         filter_days_2 = MatchFilter(days="456", sport="Tenis", is_available=None, time_min="10:00", time_max="13:00")
-        result = WebsdepadelScraper().get_court_data(filter_days_2, example_site)
+        result = WebsdepadelScraper(example_site, filter_days_2).get_site_matches()
         assert len(result) == 3
         assert result[0].date == "2024-06-15"
         assert result[1].date == "2024-06-16"
