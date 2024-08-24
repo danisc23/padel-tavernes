@@ -1,14 +1,14 @@
 import logging
 import re
 import unicodedata
+from datetime import datetime
 from typing import Self
 
-import requests
 from bs4 import BeautifulSoup
 
 from app.integrations.scrapers.scraper_interface import ScraperInterface
 from app.models import MatchFilter, MatchInfo, SiteInfo
-from app.services.common import check_filters, get_weekly_dates, time_not_in_range
+from app.services.common import check_filters, time_in_past, time_not_in_range
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +18,18 @@ class MatchpointScraper(ScraperInterface):
     SPORTS_URL = "https://{site}/booking/srvc.aspx/ObtenerCuadros"
     BOOKING_URL = "https://{site}/booking/srvc.aspx/ObtenerCuadro"
 
-    def __init__(self) -> None:
-        self.session = requests.Session()
+    def __init__(self, site: SiteInfo, filter: MatchFilter) -> None:
+        super().__init__(site, filter)
+        self.session.headers.update(
+            {
+                "Referer": self.BASE_URL.format(site=site.url),
+            }
+        )
+        self.key = self._get_api_key()
+        self.sport_ids = self._get_sport_ids()
 
-    def _get_api_key(self, site: SiteInfo) -> str:
-        url = self.BASE_URL.format(site=site.url)
+    def _get_api_key(self) -> str:
+        url = self.BASE_URL.format(site=self.site.url)
         response = self.session.get(url)
         html_content = response.text
         soup = BeautifulSoup(html_content, "html.parser")
@@ -50,63 +57,44 @@ class MatchpointScraper(ScraperInterface):
                 sport_ids.append(sport["Id"])
         return sport_ids
 
-    def _get_sport_ids(self, site: SiteInfo, filter: MatchFilter, key: str) -> list[int]:
-        url = self.SPORTS_URL.format(site=site.url)
-        response = self.session.post(url, json={"key": key})
+    def _get_sport_ids(self) -> list[int]:
+        url = self.SPORTS_URL.format(site=self.site.url)
+        response = self.session.post(url, json={"key": self.key})
         response_data = response.json()
-        return self._filter_sport_ids(response_data["d"], filter)
+        return self._filter_sport_ids(response_data["d"], self.filter)
 
-    def get_court_data(self: Self, filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
-        # TODO:
-        # - Login may be required for some sites, need to add a prior login step here
-        # - Should be able to fetch multiple sports, but we are only fetching the first one, this
-        # is because I will limit the api to filter by only one sport in further PRs
-        data = []
-        try:
-            key = self._get_api_key(site)
-            self.session.headers.update(
-                {
-                    "Referer": self.BASE_URL.format(site=site.url),
-                }
-            )
-            sport_ids = self._get_sport_ids(site, filter, key)
-            for date, payload_date in zip(get_weekly_dates(filter), get_weekly_dates(filter, "%d/%m/%Y")):
-                cache_key = self._generate_cache_key(site, filter, date)
-                daily_matches = self._get_cached_data(cache_key)
-                if daily_matches:
-                    data.extend(daily_matches)
+    def _get_scraped_availability(self: Self, date: str) -> list[dict]:
+        url = self.BOOKING_URL.format(site=self.site.url)
+        payload_date = datetime.strptime(date, "%Y-%m-%d").strftime("%d/%m/%Y")
+        payload = {"idCuadro": self.sport_ids[0], "fecha": payload_date, "key": self.key}
+        response = self.session.post(url, json=payload)
+        response_data = response.json()
+
+        if "d" not in response_data or "Columnas" not in response_data["d"]:
+            logger.error(f"Columns not found for date {date}, site {self.site.url}")
+            return []
+
+        return response_data["d"]["Columnas"]
+
+    def _get_daily_matches(self: Self, date: str) -> list[MatchInfo]:
+        data: list[MatchInfo] = []
+
+        courts = self._get_scraped_availability(date)
+        for court in courts:
+            court_name = court["TextoPrincipal"]
+            matches = court["HorariosFijos"]
+            for match in matches:
+                start_time = match["StrHoraInicio"]
+                if time_not_in_range(start_time, self.filter) or time_in_past(date, start_time):
                     continue
+                match_info = MatchInfo(
+                    sport=self.filter.sport or "padel",
+                    url=self.BASE_URL.format(site=self.site.url),
+                    time=start_time,
+                    court=court_name,
+                    is_available=True,
+                )
+                if check_filters(match_info, self.filter):
+                    data.append(match_info)
 
-                url = self.BOOKING_URL.format(site=site.url)
-                payload = {"idCuadro": sport_ids[0], "fecha": payload_date, "key": key}
-                response = self.session.post(url, json=payload)
-                response_data = response.json()
-                if "d" not in response_data or "Columnas" not in response_data["d"]:
-                    logger.error(f"Columns not found for date {date}, site {site.url}")
-                    continue
-
-                courts = response_data["d"]["Columnas"]
-                for court in courts:
-                    court_name = court["TextoPrincipal"]
-                    times = court["HorariosFijos"]
-                    for time in times:
-                        start_time = time["StrHoraInicio"]
-                        if time_not_in_range(start_time, filter.time_min, filter.time_max):
-                            continue
-                        match_info = MatchInfo(
-                            sport=filter.sport or "padel",
-                            url=self.BASE_URL.format(site=site.url),
-                            date=date,
-                            time=start_time,
-                            court=court_name,
-                            site=site,
-                            is_available=True,
-                        )
-                        if check_filters(match_info, filter):
-                            daily_matches.append(match_info)
-
-                self._cache_data(cache_key, daily_matches)
-                data.extend(daily_matches)
-        finally:
-            self.session.close()
         return data

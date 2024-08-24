@@ -16,14 +16,19 @@ def check_filters(match_info: MatchInfo, match_filter: MatchFilter) -> bool:
         return False
     if match_filter.is_available is not None and match_info.is_available != match_filter.is_available:
         return False
-    match_datetime = f"{match_info.date} {match_info.time}"
-    if match_datetime < datetime.now().strftime("%Y-%m-%d %H:%M"):
-        return False
+
     return True
 
 
-def time_not_in_range(match_time: str, time_min: str, time_max: str) -> bool:
+def time_in_past(date: str, time: str) -> bool:
+    match_datetime = datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+    current_datetime = datetime.now()
+
+    return match_datetime < current_datetime
+
+
+def time_not_in_range(match_time: str, filter: MatchFilter) -> bool:
     dt_match_time = datetime.strptime(match_time, "%H:%M")
-    dt_time_min = datetime.strptime(time_min, "%H:%M")
-    dt_time_max = datetime.strptime(time_max, "%H:%M")
+    dt_time_min = datetime.strptime(filter.time_min, "%H:%M")
+    dt_time_max = datetime.strptime(filter.time_max, "%H:%M")
     return not (dt_time_min <= dt_match_time <= dt_time_max)

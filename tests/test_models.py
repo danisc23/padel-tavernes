@@ -1,26 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.models import MatchFilter, MatchInfo
-
-
-class TestMatchInfo:
-    def test_match_info_creation(self, example_site) -> None:
-        match_info = MatchInfo(
-            sport="padel",
-            court="Court 1",
-            date="2024-06-12",
-            time="10:00",
-            url="http://example.com",
-            is_available=True,
-            site=example_site,
-        )
-        assert match_info.sport == "padel"
-        assert match_info.court == "Court 1"
-        assert match_info.date == "2024-06-12"
-        assert match_info.time == "10:00"
-        assert match_info.url == "http://example.com"
-        assert match_info.is_available is True
+from app.models import GeolocationFilter, MatchFilter
 
 
 class TestMatchFilter:
@@ -74,3 +55,26 @@ class TestMatchFilter:
         with pytest.raises(ValidationError) as exc_info:
             MatchFilter(sport="padel", is_available=True, days="012", time_min="10:00", time_max="14:00")
         assert "The difference between time_min and time_max must not exceed 3 hours" in str(exc_info.value)
+
+
+class TestGeolocationFilter:
+    def test_geolocation_filter_creation_valid(self) -> None:
+        geolocation_filter = GeolocationFilter(latitude=40.4165, longitude=-3.70256, radius_km=10)
+        assert geolocation_filter.latitude == 40.4165
+        assert geolocation_filter.longitude == -3.70256
+        assert geolocation_filter.radius_km == 10
+
+    def test_geolocation_filter_invalid_latitude(self) -> None:
+        with pytest.raises(ValidationError) as exc_info:
+            GeolocationFilter(latitude=-91, longitude=-3.70256, radius_km=10)
+        assert "latitude must be between -90 and 90" in str(exc_info.value)
+
+    def test_geolocation_filter_invalid_longitude(self) -> None:
+        with pytest.raises(ValidationError) as exc_info:
+            GeolocationFilter(latitude=40.4165, longitude=-181, radius_km=10)
+        assert "longitude must be between -180 and 180" in str(exc_info.value)
+
+    def test_geolocation_filter_invalid_radius_km(self) -> None:
+        with pytest.raises(ValidationError) as exc_info:
+            GeolocationFilter(latitude=40.4165, longitude=-3.70256, radius_km=0)
+        assert "radius_km must be greater than 0" in str(exc_info.value)
