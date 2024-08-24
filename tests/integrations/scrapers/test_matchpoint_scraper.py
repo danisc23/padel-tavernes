@@ -150,10 +150,13 @@ class TestMatchpointScrapCourtData:
         match_filter = MatchFilter(days="0", time_min="10:00", time_max="13:00")
 
         result = scraper.get_court_data(match_filter, sites[0])
-        assert len(result) == 3
-        assert result[0].time == "10:00"
-        assert result[1].time == "12:00"
-        assert result[2].time == "10:30"
+        matches = result[0].matches
+
+        assert len(result) == 1
+        assert len(matches) == 3
+        assert matches[0].time == "10:00"
+        assert matches[1].time == "12:00"
+        assert matches[2].time == "10:30"
 
     @freeze_time("2024-06-11 11:00")
     @patch("app.integrations.scrapers.matchpoint_scraper.requests.Session.post")
@@ -173,8 +176,10 @@ class TestMatchpointScrapCourtData:
         match_filter = MatchFilter(days="0", time_min="10:00", time_max="13:00")
 
         result = scraper.get_court_data(match_filter, sites[0])
+        matches = result[0].matches
         assert len(result) == 1
-        assert result[0].time == "12:00"
+        assert len(matches) == 1
+        assert matches[0].time == "12:00"
 
     @patch("app.integrations.scrapers.matchpoint_scraper.requests.Session.post")
     @patch("app.integrations.scrapers.matchpoint_scraper.MatchpointScraper._get_sport_ids")
@@ -193,6 +198,33 @@ class TestMatchpointScrapCourtData:
         match_filter = MatchFilter(days="0", time_min="10:29", time_max="13:29")
 
         result = scraper.get_court_data(match_filter, sites[0])
+        matches = result[0].matches
+        assert len(result) == 1
+
+        assert len(matches) == 2
+        assert matches[0].time == "12:00"
+        assert matches[1].time == "10:30"
+
+    @patch("app.integrations.scrapers.matchpoint_scraper.requests.Session.post")
+    @patch("app.integrations.scrapers.matchpoint_scraper.MatchpointScraper._get_sport_ids")
+    @patch("app.integrations.scrapers.matchpoint_scraper.MatchpointScraper._get_api_key")
+    def test_get_court_data_1_site_matches_per_date(
+        self, mock_get_api_key, mock_get_sport_ids, mock_requests_post, sites
+    ):
+        scraper = MatchpointScraper()
+
+        mock_get_api_key.return_value = "c00lk3y=="
+        mock_get_sport_ids.return_value = [4]
+
+        mock_response = Mock()
+        mock_response.json.return_value = self.COURT_LIST_RESPONSE
+
+        mock_requests_post.return_value = mock_response
+
+        match_filter = MatchFilter(days="01", time_min="10:00", time_max="13:00")
+
+        result = scraper.get_court_data(match_filter, sites[0])
+
         assert len(result) == 2
-        assert result[0].time == "12:00"
-        assert result[1].time == "10:30"
+        assert result[0].date == "2024-06-11"
+        assert result[1].date == "2024-06-12"

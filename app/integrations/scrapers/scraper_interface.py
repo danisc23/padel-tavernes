@@ -2,13 +2,13 @@ import logging
 from typing import Self
 
 from app.cache import cache
-from app.models import MatchFilter, MatchInfo, SiteInfo
+from app.models import MatchFilter, MatchInfo, SiteInfo, SiteMatches
 
 logger = logging.getLogger(__name__)
 
 
 class ScraperInterface:
-    def get_court_data(self: Self, filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
+    def get_court_data(self: Self, filter: MatchFilter, site: SiteInfo) -> list[SiteMatches]:
         raise NotImplementedError
 
     def _generate_cache_key(self: Self, site: SiteInfo, filter: MatchFilter, date: str) -> str:

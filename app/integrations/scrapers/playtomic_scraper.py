@@ -5,7 +5,7 @@ import pytz
 import requests
 
 from app.integrations.scrapers.scraper_interface import ScraperInterface
-from app.models import MatchFilter, MatchInfo, SiteInfo
+from app.models import MatchFilter, MatchInfo, SiteInfo, SiteMatches
 from app.services.common import check_filters, get_weekly_dates
 
 
@@ -17,8 +17,8 @@ class PlaytomicScraper(ScraperInterface):
         match_date = datetime.strptime(f"{date} {start_time}", "%Y-%m-%d %H:%M:%S")
         return match_date >= datetime.now() and duration == 90 and start_time not in used_start_times
 
-    def get_court_data(self: Self, filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
-        data = []
+    def get_court_data(self: Self, filter: MatchFilter, site: SiteInfo) -> list[SiteMatches]:
+        data: list[SiteMatches] = []
         params = {
             "user_id": "me",
             "tenant_id": site.url.split("/")[-1],
@@ -26,10 +26,11 @@ class PlaytomicScraper(ScraperInterface):
         }
         court_friendly_name: dict[str, str] = {}
         for date in get_weekly_dates(filter):
+            site_match = SiteMatches(site=site, date=date, matches=[])
             cache_key = self._generate_cache_key(site, filter, date)
-            daily_matches = self._get_cached_data(cache_key)
-            if daily_matches:
-                data.extend(daily_matches)
+            site_match.matches = self._get_cached_data(cache_key)
+            if site_match.matches:
+                data.append(site_match)
                 continue
 
             params["local_start_min"] = f"{date}T{filter.time_min}:00"
@@ -60,16 +61,15 @@ class PlaytomicScraper(ScraperInterface):
                     match_info = MatchInfo(
                         sport="padel",
                         court=court_friendly_name[court["resource_id"]],
-                        date=date,
                         time=time_str,
                         url=site.url,
                         is_available=True,
-                        site=site,
                     )
                     if check_filters(match_info, filter):
-                        daily_matches.append(match_info)
+                        site_match.matches.append(match_info)
 
-            self._cache_data(cache_key, daily_matches)
-            data.extend(daily_matches)
+            self._cache_data(cache_key, site_match.matches)
+            if site_match.matches:
+                data.append(site_match)
 
         return data

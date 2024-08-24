@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from flask_restx import Namespace, Resource, fields, inputs
 
 from app.api.common import headers_parser
-from app.context_helpers import get_sites
+from app.context_helpers import get_geo_filter, get_sites
 from app.models import MatchFilter
 from app.services.availability import get_court_data
 
@@ -24,11 +24,19 @@ match_info_model = ns.model(
     {
         "sport": fields.String,
         "court": fields.String,
-        "date": fields.String,
         "time": fields.String,
         "url": fields.String,
         "is_available": fields.Boolean,
+    },
+)
+
+site_matches_model = ns.model(
+    "SiteMatches",
+    {
         "site": fields.Nested(site_info_model),
+        "date": fields.String,
+        "distance_km": fields.Float,
+        "matches": fields.List(fields.Nested(match_info_model)),
     },
 )
 
@@ -53,7 +61,7 @@ availability_parser.add_argument(
 @ns.route("/")
 class CourtAvailability(Resource):
     @ns.expect(availability_parser)
-    @ns.marshal_list_with(match_info_model)
+    @ns.marshal_list_with(site_matches_model)
     def get(self) -> list:
         """See court availability"""
         args = availability_parser.parse_args()
@@ -69,5 +77,5 @@ class CourtAvailability(Resource):
             time_min=time_min_str,
             time_max=time_max_str,
         )
-        data = get_court_data(match_filter, get_sites())
+        data = get_court_data(match_filter, get_sites(), get_geo_filter())
         return [match.model_dump() for match in data]

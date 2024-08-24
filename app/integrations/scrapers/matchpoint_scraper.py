@@ -7,8 +7,13 @@ import requests
 from bs4 import BeautifulSoup
 
 from app.integrations.scrapers.scraper_interface import ScraperInterface
-from app.models import MatchFilter, MatchInfo, SiteInfo
-from app.services.common import check_filters, get_weekly_dates, time_not_in_range
+from app.models import MatchFilter, MatchInfo, SiteInfo, SiteMatches
+from app.services.common import (
+    check_filters,
+    get_weekly_dates,
+    time_in_past,
+    time_not_in_range,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,12 +61,12 @@ class MatchpointScraper(ScraperInterface):
         response_data = response.json()
         return self._filter_sport_ids(response_data["d"], filter)
 
-    def get_court_data(self: Self, filter: MatchFilter, site: SiteInfo) -> list[MatchInfo]:
+    def get_court_data(self: Self, filter: MatchFilter, site: SiteInfo) -> list[SiteMatches]:
         # TODO:
         # - Login may be required for some sites, need to add a prior login step here
         # - Should be able to fetch multiple sports, but we are only fetching the first one, this
         # is because I will limit the api to filter by only one sport in further PRs
-        data = []
+        data: list[SiteMatches] = []
         try:
             key = self._get_api_key(site)
             self.session.headers.update(
@@ -71,10 +76,11 @@ class MatchpointScraper(ScraperInterface):
             )
             sport_ids = self._get_sport_ids(site, filter, key)
             for date, payload_date in zip(get_weekly_dates(filter), get_weekly_dates(filter, "%d/%m/%Y")):
+                site_match = SiteMatches(site=site, date=date, matches=[])
                 cache_key = self._generate_cache_key(site, filter, date)
-                daily_matches = self._get_cached_data(cache_key)
-                if daily_matches:
-                    data.extend(daily_matches)
+                site_match.matches = self._get_cached_data(cache_key)
+                if site_match.matches:
+                    data.append(site_match)
                     continue
 
                 url = self.BOOKING_URL.format(site=site.url)
@@ -91,22 +97,21 @@ class MatchpointScraper(ScraperInterface):
                     times = court["HorariosFijos"]
                     for time in times:
                         start_time = time["StrHoraInicio"]
-                        if time_not_in_range(start_time, filter.time_min, filter.time_max):
+                        if time_not_in_range(start_time, filter) or time_in_past(date, start_time):
                             continue
                         match_info = MatchInfo(
                             sport=filter.sport or "padel",
                             url=self.BASE_URL.format(site=site.url),
-                            date=date,
                             time=start_time,
                             court=court_name,
-                            site=site,
                             is_available=True,
                         )
                         if check_filters(match_info, filter):
-                            daily_matches.append(match_info)
+                            site_match.matches.append(match_info)
 
-                self._cache_data(cache_key, daily_matches)
-                data.extend(daily_matches)
+                self._cache_data(cache_key, site_match.matches)
+                if site_match.matches:
+                    data.append(site_match)
         finally:
             self.session.close()
         return data
