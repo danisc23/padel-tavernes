@@ -1,6 +1,5 @@
 from unittest.mock import Mock, patch
 
-import pytest
 from freezegun import freeze_time
 from pytest import fixture, mark
 
@@ -66,8 +65,9 @@ class TestMatchpointScrapCourtData:
         assert scraper.key == expected_api_key
         mock_requests_get.assert_called_once_with("https://example.com/Booking/Grid.aspx")
 
+    @patch.object(MatchpointScraper, "_get_sport_ids", return_value=[4, 5])
     @patch("app.integrations.scrapers.scraper_interface.requests.Session.get")
-    def test_get_api_key_value_error(self, mock_requests_get):
+    def test_get_api_key_value_error(self, mock_requests_get, _mock_requests_post):
         site = SiteInfo(url="example.com", name="Example", type=SiteType.MATCHPOINT)
         filter = MatchFilter(days="0", time_min="10:00", time_max="13:00")
 
@@ -75,9 +75,8 @@ class TestMatchpointScrapCourtData:
         mock_response.text = "Invent"
         mock_requests_get.return_value = mock_response
 
-        with pytest.raises(ValueError) as exc_info:
-            MatchpointScraper(site, filter)
-            assert str(exc_info.value) == "hl90njda2b89k key not found"
+        scraper = MatchpointScraper(site, filter)
+        assert scraper.key == ""
 
     @patch.object(MatchpointScraper, "_get_api_key", return_value="c00lk3y==")
     @patch("app.integrations.scrapers.scraper_interface.requests.Session.post")
@@ -197,6 +196,15 @@ class TestMatchpointScrapCourtData:
         assert len(matches) == 2
         assert matches[0].time == "12:00"
         assert matches[1].time == "10:30"
+
+    @patch.object(MatchpointScraper, "_get_sport_ids", return_value=[])
+    @patch.object(MatchpointScraper, "_get_api_key", return_value="c00lk3y==")
+    def test_get_site_matches_returns_empty_on_no_sport_ids(self, _mock_get_api_key, _mock_get_sport_ids, sites):
+        filter = MatchFilter(days="0", time_min="10:00", time_max="13:00")
+        scraper = MatchpointScraper(sites[0], filter)
+        result = scraper.get_site_matches()
+
+        assert result == []
 
     @patch("app.integrations.scrapers.scraper_interface.requests.Session.post")
     @patch("app.integrations.scrapers.matchpoint_scraper.MatchpointScraper._get_sport_ids")

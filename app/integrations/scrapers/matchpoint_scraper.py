@@ -42,7 +42,8 @@ class MatchpointScraper(ScraperInterface):
                     api_key = match.group(1)
                     return api_key
 
-        raise ValueError("hl90njda2b89k key not found")
+        logger.error("hl90njda2b89k key not found")
+        return ""
 
     def _filter_sport_ids(self, sports: list[dict], filter: MatchFilter) -> list[int]:
         sport_ids = []
@@ -64,6 +65,10 @@ class MatchpointScraper(ScraperInterface):
         return self._filter_sport_ids(response_data["d"], self.filter)
 
     def _get_scraped_availability(self: Self, date: str) -> list[dict]:
+        if not self.sport_ids:
+            logger.info(f"No sport id found for site {self.site.url}")
+            return []
+
         url = self.BOOKING_URL.format(site=self.site.url)
         payload_date = datetime.strptime(date, "%Y-%m-%d").strftime("%d/%m/%Y")
         payload = {"idCuadro": self.sport_ids[0], "fecha": payload_date, "key": self.key}
