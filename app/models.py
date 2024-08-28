@@ -117,3 +117,10 @@ class MatchFilter(BaseModel):
             if time_max_dt < time_min_dt:
                 raise ValueError("time_max must be greater than time_min")
         return self
+
+
+class GeolocatedPlace(BaseModel):
+    place_id: str
+    display_name: str
+    lat: float
+    lon: float
