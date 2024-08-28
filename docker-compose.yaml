@@ -5,6 +5,7 @@ services:
       - PT_ENV=${PT_ENV}
       - FLASK_ENV=${FLASK_ENV}
       - FLASK_DEBUG=${FLASK_DEBUG}
+      - LOCATION_IQ_API_KEY=${LOCATION_IQ_API_KEY}
     build:
       context: .
       dockerfile: Dockerfile
