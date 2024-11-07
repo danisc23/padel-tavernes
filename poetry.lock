@@ -1134,13 +1134,13 @@ files = [
 
 [[package]]
 name = "types-beautifulsoup4"
-version = "4.12.0.20240907"
+version = "4.12.0.20241020"
 description = "Typing stubs for beautifulsoup4"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-beautifulsoup4-4.12.0.20240907.tar.gz", hash = "sha256:8d023b86530922070417a1d4c4d91678ab0ff2439b3b2b2cffa3b628b49ebab1"},
-    {file = "types_beautifulsoup4-4.12.0.20240907-py3-none-any.whl", hash = "sha256:32f5ac48514b488f15241afdd7d2f73f0baf3c54e874e23b66708503dd288489"},
+    {file = "types-beautifulsoup4-4.12.0.20241020.tar.gz", hash = "sha256:158370d08d0cd448bd11b132a50ff5279237a5d4b5837beba074de152a513059"},
+    {file = "types_beautifulsoup4-4.12.0.20241020-py3-none-any.whl", hash = "sha256:c95e66ce15a4f5f0835f7fbc5cd886321ae8294f977c495424eaf4225307fd30"},
 ]
 
 [package.dependencies]
@@ -1241,4 +1241,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "baa195a84a5a224f981ed396a8488c376611b1f638118818412f3899b3d93dfb"
+content-hash = "28bd77d3c956eff19430375371153fea35660b0d3258b62ac24b8c83fc5ff0c0"
