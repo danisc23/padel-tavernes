@@ -1,7 +1,11 @@
+import logging
+
 from geopy.distance import distance
 
 from app.integrations.scrapers import SCRAPERS
 from app.models import GeolocationFilter, MatchFilter, SiteInfo, SiteMatches
+
+logger = logging.getLogger(__name__)
 
 
 def add_distance_to_site_matches(
@@ -18,11 +22,15 @@ def get_court_data(
 ) -> list[SiteMatches]:
     data: list[SiteMatches] = []
     for site in sites:
-        site_matches = SCRAPERS[site.type](site, filter).get_site_matches()
-        if geolocation_filter:
-            for site_match in site_matches:
-                add_distance_to_site_matches(site_match, geolocation_filter, site)
-        data.extend(site_matches)
+        try:
+            site_matches = SCRAPERS[site.type](site, filter).get_site_matches()
+            if geolocation_filter:
+                for site_match in site_matches:
+                    add_distance_to_site_matches(site_match, geolocation_filter, site)
+            data.extend(site_matches)
+        except Exception as e:
+            logger.error(f"Error scraping site {site.name} ({site.url}): {e}")
+            continue
 
     data.sort(key=lambda x: (x.date, x.distance_km))
     return data

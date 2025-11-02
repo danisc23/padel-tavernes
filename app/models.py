@@ -9,7 +9,6 @@ from pydantic import BaseModel, field_validator, model_validator
 class SiteType(str, Enum):
     WEBSDEPADEL = "websdepadel"
     MATCHPOINT = "matchpoint"
-    PLAYTOMIC = "playtomic"
 
 
 class SiteInfo(BaseModel):

@@ -21,18 +21,16 @@ def test_find_site_by_url_returns_known_site():
 
 
 def test_get_available_sites_returns_all_supported_sites(mocker):
-    mocker.patch("app.services.sites.get_playtomic_sites", return_value=[])
     geolocation_filter = GeolocationFilter(latitude=39.469908, longitude=-0.376288, radius_km=300)
     response = get_available_sites(geolocation_filter)
     assert len(response.sites) == len(SUPPORTED_SITES)
 
 
 def test_get_available_sites_filter_by_geolocation(mocker):
-    mocker.patch("app.services.sites.get_playtomic_sites", return_value=[])
     geolocation_filter = GeolocationFilter(latitude=39.5082456, longitude=-0.3612918, radius_km=1)
     response = get_available_sites(geolocation_filter)
     assert len(response.sites) == 1
 
     geolocation_filter = GeolocationFilter(latitude=39.5082456, longitude=-0.3612918, radius_km=10)
     response = get_available_sites(geolocation_filter)
-    assert len(response.sites) == 8
+    assert len(response.sites) == 7

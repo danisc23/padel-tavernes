@@ -1,14 +1,14 @@
 # Padel-Tavernes
 
 Originally this was a Flask api that scraped the [Esport En Tavernes Blanques](https://www.esportentavernesblanques.es/) website to get the padel (and other sports) bookings.
-Currently it scrapes all the known websites from [Webs de padel](https://www.websdepadel.com/) platform that allows to find the available courts to play padel in one place. So the project name is already outdated, 🥳.
+Currently it scrapes websites from platforms like [Webs de padel](https://www.websdepadel.com/) and [Matchpoint By Matchi](https://tpcmatchpoint.com/) that allow finding available courts to play padel in one place. So the project name is already outdated, 🥳.
 
 The scraped platform has a some issues that this project tries (or will try) to solve:
 - Each club has its own website and app to book the courts, so you need to check all the websites 1 by 1 to find the available courts.
 - The website only shows the available courts for 1 day, so you need to check day by day to find the available courts.
 - Don't have any filter to find only the available courts, so you need to navigate through all the courts to find the available ones.
 
-The motivation for this project was just to have fun and to not forget about python since I'm not using it these months. But also I wanted to play around [Flask](https://flask.palletsprojects.com/en/2.0.x/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) since I never used these before. Also I must recognice that every time I go back to Valencia and I want to play padel [Playtomic](https://www.playtomic.io/) is always empty since every club is using their own website and apps to book the courts, so I wanted to create a tool that could help me to see all the available courts in one place.
+The motivation for this project was just to have fun and to not forget about python since I'm not using it these months. But also I wanted to play around [Flask](https://flask.palletsprojects.com/en/2.0.x/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) since I never used these before. Also I must recognice that every time I go back to Valencia and I want to play padel, clubs are using their own websites and apps to book the courts, so I wanted to create a tool that could help me to see all the available courts in one place.
 
 ## Table of Contents
 
@@ -122,14 +122,13 @@ The Flask app should now be accessible at `http://localhost:8000/docs/`.
 Honestly, this is a project that I did in a couple of hours just to entertain myself and to not forget about python since is my main language but I'm not using it these months. But if you want to contribute, feel free to do it. Just fork the repository, make your changes and submit a pull request.
 
 Maybe would be interesting to extract some other information like statistics about wich courts are more used, sport is played the most, etc. (Done)
-Or would be interesting to see all the available courts for the different websites like [Playtomic](https://www.playtomic.io/). (Also Done 🤭)
 Would be super cool to create a web that implements this api.
 Also there are *modern* alternatives to [Webs de padel](https://www.websdepadel.com/) like [Matchpoint By Matchi](https://tpcmatchpoint.com/) that could be interesting to scrape and show in the same place.
 
-Take in mind that the [Webs de padel](https://www.websdepadel.com/) platform is quite old and padel clubs are moving to other platform so this project could be deprecated soon.
+Take in mind that these platforms are evolving and padel clubs are moving between platforms, so the project needs to be updated accordingly.
 
 ### TODO
-- [x] Scrape websites from [Webs de padel](https://www.websdepadel.com/) platform.
+- [x] Scrape websites from [Webs de padel](https://www.websdepadel.com/) and [Matchpoint By Matchi](https://tpcmatchpoint.com/) platforms.
 - [ ] Create and updatable db to easily increase the number of clubs (currently is hardcoded).
 - [ ] Improve the way filters are defined (currently is hardcoded, each club has different sports).
 - [ ] To improve Swagger documentation would be nice to use models and arguments definitions in the good way.

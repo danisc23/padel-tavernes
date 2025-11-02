@@ -39,15 +39,7 @@ def example_site() -> SiteInfo:
 
 
 @pytest.fixture
-def playtomic_site() -> SiteInfo:
-    return SiteInfo(
-        url="playtomic.io/name/uuid", name="Playtomic", type=SiteType.PLAYTOMIC, coordinates=(39.469908, -0.376288)
-    )
-
-
-@pytest.fixture
-def client(mocker, app: Flask, playtomic_site: SiteInfo) -> FlaskClient:
-    mocker.patch("app.services.sites.get_playtomic_sites", return_value=[])
+def client(mocker, app: Flask) -> FlaskClient:
     mocker.patch("app.cache.cache._bypass_cache", return_value=True)
     return app.test_client()
 
